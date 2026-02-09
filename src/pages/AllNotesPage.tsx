@@ -106,7 +106,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [dateRangeStart, setDateRangeStart] = useState<string>("");
   const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
-  const [filterTags, setFilterTags] = useState<string[]>([]);
   const [filterYear, setFilterYear] = useState<string>("");
   const [filtersVisible, setFiltersVisible] = useState(true);
 
@@ -229,14 +228,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
       if (note.country !== filterCountry) return false;
     }
 
-    // Tags filter
-    if (filterTags.length > 0) {
-      const hasMatchingTag = filterTags.some((filterTag) =>
-        note.tags.includes(filterTag),
-      );
-      if (!hasMatchingTag) return false;
-    }
-
     // Date range filter
     if (dateRangeStart) {
       const startDate = new Date(dateRangeStart);
@@ -296,7 +287,14 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   };
 
   return (
-    <Box>
+    <Box
+      sx={{
+        height: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       {/* Navbar */}
       <AppBar
         position="static"
@@ -379,8 +377,28 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ marginTop: "20px" }}>
-        <Paper sx={{ padding: "20px", borderRadius: 2, boxShadow: 3 }}>
+      <Container
+        maxWidth="xl"
+        sx={{
+          marginTop: "20px",
+          flex: 1,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          paddingBottom: "20px",
+        }}
+      >
+        <Paper
+          sx={{
+            padding: "20px",
+            borderRadius: 2,
+            boxShadow: 3,
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            flex: 1,
+          }}
+        >
           <Typography variant="h6" sx={{ mb: 3 }} fontWeight={600}>
             📚 All Notes ({filteredNotes.length})
           </Typography>
@@ -486,65 +504,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                       </Select>
                     </FormControl>
 
-                    {/* Tags Filter */}
-                    <FormControl
-                      size="small"
-                      sx={{
-                        minWidth: 150,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "black",
-                          borderWidth: "1px",
-                        },
-                      }}
-                    >
-                      <InputLabel>Tags</InputLabel>
-                      <Select
-                        value=""
-                        label="Tags"
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (value && !filterTags.includes(value)) {
-                            setFilterTags([...filterTags, value]);
-                            handleFilterChange();
-                          }
-                        }}
-                      >
-                        {TAG_CATEGORIES.filter(
-                          (tag) => !filterTags.includes(tag),
-                        ).map((tag) => (
-                          <MenuItem key={tag} value={tag}>
-                            {tag}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-
-                    {/* Selected Tags Display */}
-                    {filterTags.length > 0 && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: 0.5,
-                          alignItems: "center",
-                        }}
-                      >
-                        {filterTags.map((tag) => (
-                          <Chip
-                            key={tag}
-                            label={tag}
-                            size="small"
-                            onDelete={() => {
-                              setFilterTags(
-                                filterTags.filter((t) => t !== tag),
-                              );
-                              handleFilterChange();
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    )}
-
                     {/* Sort Order */}
                     <FormControl
                       size="small"
@@ -569,46 +528,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                         <MenuItem value="oldest">Oldest First</MenuItem>
                       </Select>
                     </FormControl>
-
-                    {/* Date Range Start */}
-                    <TextField
-                      label="From Date"
-                      type="date"
-                      size="small"
-                      value={dateRangeStart}
-                      onChange={(e) => {
-                        setDateRangeStart(e.target.value);
-                        handleFilterChange();
-                      }}
-                      InputLabelProps={{ shrink: true }}
-                      sx={{
-                        minWidth: 150,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "black",
-                          borderWidth: "1px",
-                        },
-                      }}
-                    />
-
-                    {/* Date Range End */}
-                    <TextField
-                      label="To Date"
-                      type="date"
-                      size="small"
-                      value={dateRangeEnd}
-                      onChange={(e) => {
-                        setDateRangeEnd(e.target.value);
-                        handleFilterChange();
-                      }}
-                      InputLabelProps={{ shrink: true }}
-                      sx={{
-                        minWidth: 150,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "black",
-                          borderWidth: "1px",
-                        },
-                      }}
-                    />
 
                     {/* Year Filter */}
                     <FormControl
@@ -672,7 +591,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
                     {/* Clear Filters Button */}
                     {(filterCountry !== "All" ||
-                      filterTags.length > 0 ||
                       dateRangeStart ||
                       dateRangeEnd ||
                       filterYear ||
@@ -683,7 +601,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                         size="small"
                         onClick={() => {
                           setFilterCountry("All");
-                          setFilterTags([]);
                           setSortOrder("newest");
                           setDateRangeStart("");
                           setDateRangeEnd("");
@@ -697,329 +614,343 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                       </Button>
                     )}
                   </Box>
-
-                  {/* Right side: Pagination */}
-                  {filteredNotes.length > 0 && (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 2,
-                      }}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        {startIndex + 1}-
-                        {Math.min(endIndex, filteredNotes.length)} of{" "}
-                        {filteredNotes.length}
-                      </Typography>
-                      <Pagination
-                        count={totalPages}
-                        page={currentPage}
-                        onChange={(_, page) => setCurrentPage(page)}
-                        color="primary"
-                        size="small"
-                      />
-                    </Box>
-                  )}
                 </Box>
 
-                {/* Country Selectors (shown when country sections mode is enabled) */}
-                {countrySectionCount > 0 && (
+                {/* Pagination Row - aligned right */}
+                {filteredNotes.length > 0 && (
                   <Box
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      alignItems: "center",
                       gap: 2,
-                      mt: 3,
-                      pt: 3,
+                      mt: 2,
+                      pt: 2,
                       borderTop: "1px solid #ddd",
                     }}
                   >
-                    {countryFilters
-                      .slice(0, countrySectionCount)
-                      .map((country, index) => (
-                        <Autocomplete
-                          key={index}
-                          options={COUNTRIES}
-                          value={country || null}
-                          onChange={(_, newValue) => {
-                            const newFilters = [...countryFilters] as [
-                              string,
-                              string,
-                              string,
-                              string,
-                            ];
-                            newFilters[index] = newValue || "";
-                            setCountryFilters(newFilters);
-                          }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label="Select a country"
-                              size="small"
-                              sx={{
-                                "& .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "black",
-                                  borderWidth: "1px",
-                                },
-                              }}
-                            />
-                          )}
-                          size="small"
-                        />
-                      ))}
+                    <Typography variant="body2" color="text.secondary">
+                      {startIndex + 1}-
+                      {Math.min(endIndex, filteredNotes.length)} of{" "}
+                      {filteredNotes.length}
+                    </Typography>
+                    <Pagination
+                      count={totalPages}
+                      page={currentPage}
+                      onChange={(_, page) => setCurrentPage(page)}
+                      color="primary"
+                      size="small"
+                      shape="rounded"
+                      sx={{
+                        "& .MuiPaginationItem-root": {
+                          borderRadius: 1,
+                        },
+                      }}
+                    />
                   </Box>
                 )}
               </>
             )}
           </Box>
 
-          {/* Normal view (single list) */}
-          {countrySectionCount === 0 && (
-            <List dense>
-              {paginatedNotes.map((note) => {
-                // Get the actual index from the original notes array
-                const actualIndex = notes.findIndex((n) => n === note);
+          {/* Notes Container with scroll */}
+          <Box
+            sx={{
+              flex: 1,
+              overflowX: "hidden",
+            }}
+          >
+            {/* Normal view (single list) */}
+            {countrySectionCount === 0 && (
+              <List dense>
+                {paginatedNotes.map((note) => {
+                  // Get the actual index from the original notes array
+                  const actualIndex = notes.findIndex((n) => n === note);
 
-                return (
-                  <Box
-                    key={actualIndex}
-                    sx={{
-                      mb: 1.5,
-                      backgroundColor: "rgba(255, 255, 255, 1)",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                      border: "2px solid black",
-                      borderRadius: 2,
-                      p: 2,
-                      cursor: "pointer",
-                      transition: "all 0.2s",
-                      "&:hover": {
-                        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-                        transform: "translateY(-2px)",
-                      },
-                      "&:hover .note-actions": {
-                        opacity: 1,
-                      },
-                    }}
-                    onClick={() => handleEditNote(note, actualIndex)}
-                  >
-                    {/* Header: Title + Action Icons */}
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        fontWeight={600}
-                        sx={{ flexGrow: 1 }}
-                      >
-                        {note.title || "Untitled Note"}
-                      </Typography>
-                      <Box
-                        className="note-actions"
-                        sx={{
-                          display: "flex",
-                          gap: 0.5,
-                          opacity: 0.7,
-                          transition: "opacity 0.2s",
-                        }}
-                      >
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditNote(note, actualIndex);
-                          }}
-                          sx={{ padding: "4px" }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteNote(actualIndex);
-                          }}
-                          sx={{ padding: "4px" }}
-                          color="error"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    {/* Country Badge */}
-                    {note.country && (
-                      <Box sx={{ mb: 1 }}>
-                        <Chip
-                          label={note.country}
-                          size="small"
-                          color="primary"
-                          sx={{ height: "22px", fontSize: "0.75rem" }}
-                        />
-                      </Box>
-                    )}
-
-                    {/* Text Preview */}
-                    <Typography
-                      variant="body2"
-                      color="text.primary"
-                      sx={{ mb: 1 }}
-                    >
-                      {note.text.substring(0, 200)}
-                      {note.text.length > 200 && "..."}
-                    </Typography>
-
-                    {/* Date Information */}
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "#999", fontSize: "0.7rem" }}
-                    >
-                      {note.createdAt.toLocaleString()}
-                      {note.updatedAt.getTime() !==
-                        note.createdAt.getTime() && (
-                        <> • Updated {note.updatedAt.toLocaleString()}</>
-                      )}
-                    </Typography>
-                    {note.source && (
-                      <>
-                        {" • "}
-                        <Link
-                          href={note.source}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          variant="caption"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Source
-                        </Link>
-                      </>
-                    )}
-                  </Box>
-                );
-              })}
-              {paginatedNotes.length === 0 && filteredNotes.length === 0 && (
-                <Box
-                  sx={{
-                    textAlign: "center",
-                    padding: "40px",
-                    color: "text.secondary",
-                  }}
-                >
-                  <Typography variant="h6" gutterBottom>
-                    No notes found
-                  </Typography>
-                  <Typography variant="body2">
-                    {notes.length === 0
-                      ? "Use the Add Note button to get started!"
-                      : "Try adjusting your filters"}
-                  </Typography>
-                </Box>
-              )}
-            </List>
-          )}
-
-          {/* Country sections view (dynamic columns) */}
-          {countrySectionCount > 0 && (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
-                gap: 2,
-              }}
-            >
-              {countryFilters
-                .slice(0, countrySectionCount)
-                .map((country, sectionIndex) => {
-                  const sectionNotes = getNotesForCountry(country);
                   return (
                     <Box
-                      key={sectionIndex}
+                      key={actualIndex}
                       sx={{
+                        mb: 1.5,
+                        backgroundColor: "rgba(255, 255, 255, 1)",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                         border: "2px solid black",
                         borderRadius: 2,
                         p: 2,
-                        backgroundColor: "#f9f9f9",
-                        minHeight: "300px",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+
+                        "&:hover": {
+                          boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                          transform: "translateY(-2px)",
+                        },
+                        "&:hover .note-actions": {
+                          opacity: 1,
+                        },
                       }}
+                      onClick={() => handleEditNote(note, actualIndex)}
                     >
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight={600}
-                        sx={{ mb: 2, borderBottom: "1px solid #ddd", pb: 1 }}
+                      {/* Header: Title + Action Icons */}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          mb: 1,
+                        }}
                       >
-                        {country || "No country selected"}
-                        {country && ` (${sectionNotes.length})`}
-                      </Typography>
-                      {!country && (
                         <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ textAlign: "center", mt: 4 }}
+                          variant="h6"
+                          fontWeight={600}
+                          sx={{ flexGrow: 1 }}
                         >
-                          No notes available
+                          {note.title || "Untitled Note"}
                         </Typography>
-                      )}
-                      {country && sectionNotes.length === 0 && (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{ textAlign: "center", mt: 4 }}
+                        <Box
+                          className="note-actions"
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            opacity: 0.7,
+                            transition: "opacity 0.2s",
+                          }}
                         >
-                          No notes for {country}
-                        </Typography>
-                      )}
-                      {sectionNotes.map((note) => {
-                        const actualIndex = notes.findIndex((n) => n === note);
-                        return (
-                          <Box
-                            key={actualIndex}
-                            sx={{
-                              mb: 1,
-                              backgroundColor: "white",
-                              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-                              border: "1px solid #ddd",
-                              borderRadius: 1,
-                              p: 1.5,
-                              cursor: "pointer",
-                              transition: "all 0.2s",
-                              "&:hover": {
-                                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                              },
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditNote(note, actualIndex);
                             }}
-                            onClick={() => handleEditNote(note, actualIndex)}
+                            sx={{ padding: "4px" }}
                           >
-                            <Typography
-                              variant="body2"
-                              fontWeight={600}
-                              sx={{ mb: 0.5 }}
-                            >
-                              {note.title || "Untitled"}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{
-                                display: "block",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {note.text.substring(0, 50)}...
-                            </Typography>
-                          </Box>
-                        );
-                      })}
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteNote(actualIndex);
+                            }}
+                            sx={{ padding: "4px" }}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      {/* Country Badge */}
+                      {note.country && (
+                        <Box sx={{ mb: 1 }}>
+                          <Chip
+                            label={note.country}
+                            size="small"
+                            color="primary"
+                            sx={{ height: "22px", fontSize: "0.75rem" }}
+                          />
+                        </Box>
+                      )}
+
+                      {/* Text Preview */}
+                      <Typography
+                        variant="body2"
+                        color="text.primary"
+                        sx={{ mb: 1 }}
+                      >
+                        {note.text.substring(0, 200)}
+                        {note.text.length > 200 && "..."}
+                      </Typography>
+
+                      {/* Date Information */}
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#999", fontSize: "0.7rem" }}
+                      >
+                        {note.createdAt.toLocaleString()}
+                        {note.updatedAt.getTime() !==
+                          note.createdAt.getTime() && (
+                          <> • Updated {note.updatedAt.toLocaleString()}</>
+                        )}
+                      </Typography>
+                      {note.source && (
+                        <>
+                          {" • "}
+                          <Link
+                            href={note.source}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="caption"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Source
+                          </Link>
+                        </>
+                      )}
                     </Box>
                   );
                 })}
-            </Box>
-          )}
+                {paginatedNotes.length === 0 && filteredNotes.length === 0 && (
+                  <Box
+                    sx={{
+                      textAlign: "center",
+                      padding: "40px",
+                      color: "text.secondary",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom>
+                      No notes found
+                    </Typography>
+                    <Typography variant="body2">
+                      {notes.length === 0
+                        ? "Use the Add Note button to get started!"
+                        : "Try adjusting your filters"}
+                    </Typography>
+                  </Box>
+                )}
+              </List>
+            )}
+
+            {/* Country sections view (dynamic columns) */}
+            {countrySectionCount > 0 && (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
+                  gap: 2,
+                }}
+              >
+                {countryFilters
+                  .slice(0, countrySectionCount)
+                  .map((country, sectionIndex) => {
+                    const sectionNotes = getNotesForCountry(country);
+                    return (
+                      <Box
+                        key={sectionIndex}
+                        sx={{
+                          border: "2px solid black",
+                          borderRadius: 2,
+                          p: 2,
+                          backgroundColor: "#f9f9f9",
+                          minHeight: "300px",
+                        }}
+                      >
+                        {/* Country selector header */}
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 2,
+                            pb: 1,
+                            borderBottom: "1px solid #ddd",
+                          }}
+                        >
+                          <Autocomplete
+                            options={COUNTRIES}
+                            value={country || null}
+                            onChange={(_, newValue) => {
+                              const newFilters = [...countryFilters] as [
+                                string,
+                                string,
+                                string,
+                                string,
+                              ];
+                              newFilters[sectionIndex] = newValue || "";
+                              setCountryFilters(newFilters);
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label={
+                                  sectionNotes.length > 0
+                                    ? "Select a country (" +
+                                      sectionNotes.length +
+                                      ")"
+                                    : "Select a country"
+                                }
+                                size="small"
+                                sx={{
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "black",
+                                    borderWidth: "1px",
+                                  },
+                                }}
+                              />
+                            )}
+                            size="small"
+                            sx={{ width: 200 }}
+                          />
+                        </Box>
+                        {!country && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ textAlign: "center", mt: 4 }}
+                          >
+                            No notes available
+                          </Typography>
+                        )}
+                        {country && sectionNotes.length === 0 && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{ textAlign: "center", mt: 4 }}
+                          >
+                            No notes for {country}
+                          </Typography>
+                        )}
+                        {sectionNotes.map((note) => {
+                          const actualIndex = notes.findIndex(
+                            (n) => n === note,
+                          );
+                          return (
+                            <Box
+                              key={actualIndex}
+                              sx={{
+                                mb: 1,
+                                backgroundColor: "white",
+                                boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                                border: "1px solid #ddd",
+                                borderRadius: 1,
+                                overflowY: "auto",
+
+                                p: 1.5,
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                                "&:hover": {
+                                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                                },
+                              }}
+                              onClick={() => handleEditNote(note, actualIndex)}
+                            >
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                sx={{ mb: 0.5 }}
+                              >
+                                {note.title || "Untitled"}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                  display: "block",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {note.text.substring(0, 50)}...
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    );
+                  })}
+              </Box>
+            )}
+          </Box>
         </Paper>
       </Container>
 
@@ -1033,6 +964,11 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         }}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            overflow: "hidden",
+          },
+        }}
       >
         <DialogTitle>
           <Box
@@ -1050,7 +986,9 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             </IconButton>
           </Box>
         </DialogTitle>
-        <DialogContent>
+        <DialogContent
+          sx={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
+        >
           <TextField
             label="Title"
             variant="outlined"
@@ -1071,15 +1009,19 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             variant="outlined"
             fullWidth
             multiline
-            rows={10}
+            minRows={6}
+            maxRows={12}
             value={addText}
             onChange={(e) => setAddText(e.target.value)}
             required
             sx={{
               marginBottom: 2,
+              flexShrink: 0,
               "& .MuiOutlinedInput-root": {
                 backgroundColor: "#fafafa",
                 boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
+                maxHeight: "300px",
+                overflow: "auto",
               },
             }}
           />
