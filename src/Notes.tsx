@@ -89,6 +89,8 @@ const Notes: React.FC<NotesProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerTags, setDrawerTags] = useState<string[]>([]);
+  const [drawerTagsOpen, setDrawerTagsOpen] = useState(false);
 
   // Add note state
   const [addTitle, setAddTitle] = useState("");
@@ -145,6 +147,7 @@ const Notes: React.FC<NotesProps> = ({
     setError(null);
     setCurrentArticle(null);
     setEditedArticleText("");
+    setDrawerTags([]);
     try {
       const article = await fetchRandomCountryHistory(countryName);
       setCurrentArticle(article);
@@ -182,7 +185,7 @@ const Notes: React.FC<NotesProps> = ({
       const note: Note = {
         title: currentArticle.title,
         text: editedArticleText,
-        tags: [],
+        tags: drawerTags,
         country: currentArticle.country,
         source: currentArticle.url,
         createdAt: now,
@@ -194,6 +197,7 @@ const Notes: React.FC<NotesProps> = ({
       setDrawerOpen(false);
       setCurrentArticle(null);
       setEditedArticleText("");
+      setDrawerTags([]);
       setSuccessMessage("Note successfully saved!");
       setSuccessOpen(true);
     }
@@ -204,6 +208,7 @@ const Notes: React.FC<NotesProps> = ({
     setCurrentArticle(null);
     setEditedArticleText("");
     setError(null);
+    setDrawerTags([]);
   };
 
   const handleEditNote = (note: Note, index: number) => {
@@ -297,36 +302,13 @@ const Notes: React.FC<NotesProps> = ({
           <Typography
             variant="h5"
             sx={{
-              flexGrow: 0,
+              flexGrow: 1,
               fontWeight: 700,
               letterSpacing: "0.5px",
             }}
           >
             🌍 GlobalHistory
           </Typography>
-
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              justifyContent: "center",
-              px: 4,
-            }}
-          >
-            <TextField
-              label="Search Notes"
-              variant="outlined"
-              size="small"
-              fullWidth
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 1,
-                maxWidth: "600px",
-              }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </Box>
 
           <Button
             variant="contained"
@@ -713,7 +695,7 @@ const Notes: React.FC<NotesProps> = ({
               value={editedArticleText}
               onChange={(e) => setEditedArticleText(e.target.value)}
               sx={{
-                marginBottom: 3,
+                marginBottom: 2,
                 flexGrow: 1,
                 display: "flex",
                 flexDirection: "column",
@@ -731,6 +713,43 @@ const Notes: React.FC<NotesProps> = ({
                 },
               }}
             />
+            <FormControl fullWidth sx={{ marginBottom: 2 }}>
+              <InputLabel>Tags</InputLabel>
+              <Select
+                multiple
+                open={drawerTagsOpen}
+                onOpen={() => setDrawerTagsOpen(true)}
+                onClose={() => setDrawerTagsOpen(false)}
+                value={drawerTags}
+                onChange={(e) => {
+                  setDrawerTags(e.target.value as string[]);
+                  setDrawerTagsOpen(false);
+                }}
+                input={<OutlinedInput label="Tags" />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip
+                        key={value}
+                        label={value}
+                        size="small"
+                        onDelete={(e) => {
+                          e.stopPropagation();
+                          setDrawerTags(drawerTags.filter((t) => t !== value));
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                      />
+                    ))}
+                  </Box>
+                )}
+              >
+                {TAG_CATEGORIES.map((tag) => (
+                  <MenuItem key={tag} value={tag}>
+                    {tag}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <Link
               href={currentArticle.url}
               target="_blank"
@@ -853,7 +872,16 @@ const Notes: React.FC<NotesProps> = ({
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
-                    <Chip key={value} label={value} size="small" />
+                    <Chip
+                      key={value}
+                      label={value}
+                      size="small"
+                      onDelete={(e) => {
+                        e.stopPropagation();
+                        setAddTags(addTags.filter((t) => t !== value));
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    />
                   ))}
                 </Box>
               )}
@@ -975,7 +1003,16 @@ const Notes: React.FC<NotesProps> = ({
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
-                    <Chip key={value} label={value} size="small" />
+                    <Chip
+                      key={value}
+                      label={value}
+                      size="small"
+                      onDelete={(e) => {
+                        e.stopPropagation();
+                        setEditTags(editTags.filter((t) => t !== value));
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    />
                   ))}
                 </Box>
               )}

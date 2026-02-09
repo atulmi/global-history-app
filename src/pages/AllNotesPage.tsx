@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import {
   Container,
-  Grid,
   Paper,
   Typography,
   List,
-  ListItem,
-  ListItemText,
   Divider,
   Box,
   Link,
@@ -36,6 +33,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { COUNTRIES, TAG_CATEGORIES } from "../data/countries";
 import Autocomplete from "@mui/material/Autocomplete";
 
@@ -107,6 +106,19 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [dateRangeStart, setDateRangeStart] = useState<string>("");
   const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
+  const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [filterYear, setFilterYear] = useState<string>("");
+  const [filtersVisible, setFiltersVisible] = useState(true);
+
+  // Country filter mode state (multi-section view)
+  const [countrySectionCount, setCountrySectionCount] = useState(0); // 0 = disabled, 1-4 = number of sections
+  const [countryFilters, setCountryFilters] = useState<
+    [string, string, string, string]
+  >(["", "", "", ""]);
+
+  // Dialog Tags Select open state
+  const [addTagsOpen, setAddTagsOpen] = useState(false);
+  const [editTagsOpen, setEditTagsOpen] = useState(false);
 
   const handleAddNote = () => {
     if (addText && addCountry) {
@@ -197,40 +209,59 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     setEditCountry(null);
   };
 
-  // Filter and sort notes
-  const filteredNotes = notes
-    .filter((note) => {
-      // Search term filter
-      const searchLower = searchTerm.toLowerCase();
-      const matchesSearch =
-        note.text.toLowerCase().includes(searchLower) ||
-        note.title?.toLowerCase().includes(searchLower) ||
-        note.tags.some((tag) => tag.toLowerCase().includes(searchLower));
+  // Base filter function (used for both modes)
+  const baseFilter = (note: Note, skipCountryFilter = false) => {
+    // Search term filter
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch =
+      note.text.toLowerCase().includes(searchLower) ||
+      note.title?.toLowerCase().includes(searchLower) ||
+      note.tags.some((tag) => tag.toLowerCase().includes(searchLower));
 
-      if (!matchesSearch) return false;
+    if (!matchesSearch) return false;
 
-      // Country filter
-      if (filterCountry !== "All") {
-        if (note.country !== filterCountry) return false;
-      }
+    // Single country filter (only when not in multi-section mode and not skipped)
+    if (
+      !skipCountryFilter &&
+      countrySectionCount === 0 &&
+      filterCountry !== "All"
+    ) {
+      if (note.country !== filterCountry) return false;
+    }
 
-      // Date range filter
-      if (dateRangeStart) {
-        const startDate = new Date(dateRangeStart);
-        startDate.setHours(0, 0, 0, 0);
-        if (note.createdAt < startDate) return false;
-      }
+    // Tags filter
+    if (filterTags.length > 0) {
+      const hasMatchingTag = filterTags.some((filterTag) =>
+        note.tags.includes(filterTag),
+      );
+      if (!hasMatchingTag) return false;
+    }
 
-      if (dateRangeEnd) {
-        const endDate = new Date(dateRangeEnd);
-        endDate.setHours(23, 59, 59, 999);
-        if (note.createdAt > endDate) return false;
-      }
+    // Date range filter
+    if (dateRangeStart) {
+      const startDate = new Date(dateRangeStart);
+      startDate.setHours(0, 0, 0, 0);
+      if (note.createdAt < startDate) return false;
+    }
 
-      return true;
-    })
-    .sort((a, b) => {
-      // Sort by date
+    if (dateRangeEnd) {
+      const endDate = new Date(dateRangeEnd);
+      endDate.setHours(23, 59, 59, 999);
+      if (note.createdAt > endDate) return false;
+    }
+
+    // Year filter
+    if (filterYear) {
+      const noteYear = note.createdAt.getFullYear().toString();
+      if (noteYear !== filterYear) return false;
+    }
+
+    return true;
+  };
+
+  // Sort function
+  const sortNotes = (notesToSort: Note[]) => {
+    return [...notesToSort].sort((a, b) => {
       if (sortOrder === "newest") {
         return b.createdAt.getTime() - a.createdAt.getTime();
       } else if (sortOrder === "oldest") {
@@ -238,6 +269,20 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
       }
       return 0;
     });
+  };
+
+  // Filter and sort notes (for normal mode)
+  const filteredNotes = sortNotes(notes.filter(baseFilter));
+
+  // Get notes for each country section (for country filter mode)
+  const getNotesForCountry = (country: string) => {
+    if (!country) return [];
+    return sortNotes(
+      notes.filter(
+        (note) => baseFilter(note, true) && note.country === country,
+      ),
+    );
+  };
 
   // Pagination
   const totalPages = Math.ceil(filteredNotes.length / itemsPerPage);
@@ -336,302 +381,645 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
       <Container maxWidth="xl" sx={{ marginTop: "20px" }}>
         <Paper sx={{ padding: "20px", borderRadius: 2, boxShadow: 3 }}>
-          <Typography variant="h6" gutterBottom fontWeight={600}>
+          <Typography variant="h6" sx={{ mb: 3 }} fontWeight={600}>
             📚 All Notes ({filteredNotes.length})
           </Typography>
 
           {/* Filter Controls and Pagination */}
           <Box
             sx={{
-              display: "flex",
-              gap: 2,
-              mb: 3,
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
+              backgroundColor: "#f5f5f5",
+              borderRadius: 2,
+              p: 2,
+              mb: 4,
             }}
           >
-            {/* Left side: Filter controls */}
+            {/* Toggle Button Row */}
             <Box
               sx={{
                 display: "flex",
-                gap: 2,
-                flexWrap: "wrap",
+                justifyContent: "space-between",
                 alignItems: "center",
+                mb: filtersVisible ? 2 : 0,
               }}
             >
-              {/* Country Filter */}
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Country</InputLabel>
-                <Select
-                  value={filterCountry}
-                  label="Country"
-                  onChange={(e) => {
-                    setFilterCountry(e.target.value);
-                    handleFilterChange();
-                  }}
-                >
-                  <MenuItem value="All">All Countries</MenuItem>
-                  {COUNTRIES.map((country) => (
-                    <MenuItem key={country} value={country}>
-                      {country}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Sort Order */}
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Sort By</InputLabel>
-                <Select
-                  value={sortOrder}
-                  label="Sort By"
-                  onChange={(e) => {
-                    setSortOrder(e.target.value);
-                    handleFilterChange();
-                  }}
-                >
-                  <MenuItem value="newest">Newest First</MenuItem>
-                  <MenuItem value="oldest">Oldest First</MenuItem>
-                </Select>
-              </FormControl>
-
-              {/* Date Range Start */}
-              <TextField
-                label="From Date"
-                type="date"
+              <Typography variant="subtitle2" color="text.secondary">
+                Filters
+              </Typography>
+              <Button
                 size="small"
-                value={dateRangeStart}
-                onChange={(e) => {
-                  setDateRangeStart(e.target.value);
-                  handleFilterChange();
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 150 }}
-              />
-
-              {/* Date Range End */}
-              <TextField
-                label="To Date"
-                type="date"
-                size="small"
-                value={dateRangeEnd}
-                onChange={(e) => {
-                  setDateRangeEnd(e.target.value);
-                  handleFilterChange();
-                }}
-                InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 150 }}
-              />
-
-              {/* Items Per Page */}
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Per Page</InputLabel>
-                <Select
-                  value={itemsPerPage}
-                  label="Per Page"
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                >
-                  <MenuItem value={20}>20</MenuItem>
-                  <MenuItem value={40}>40</MenuItem>
-                  <MenuItem value={60}>60</MenuItem>
-                  <MenuItem value={80}>80</MenuItem>
-                  <MenuItem value={100}>100</MenuItem>
-                </Select>
-              </FormControl>
-
-              {/* Clear Filters Button */}
-              {(filterCountry !== "All" ||
-                dateRangeStart ||
-                dateRangeEnd ||
-                sortOrder !== "newest") && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={() => {
-                    setFilterCountry("All");
-                    setSortOrder("newest");
-                    setDateRangeStart("");
-                    setDateRangeEnd("");
-                    setCurrentPage(1);
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              )}
+                onClick={() => setFiltersVisible(!filtersVisible)}
+                endIcon={
+                  filtersVisible ? <ExpandLessIcon /> : <ExpandMoreIcon />
+                }
+              >
+                {filtersVisible ? "Hide Filters" : "Show Filters"}
+              </Button>
             </Box>
 
-            {/* Right side: Pagination */}
-            {filteredNotes.length > 0 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  {startIndex + 1}-{Math.min(endIndex, filteredNotes.length)} of{" "}
-                  {filteredNotes.length}
-                </Typography>
-                <Pagination
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={(_, page) => setCurrentPage(page)}
-                  color="primary"
-                  size="small"
-                />
-              </Box>
-            )}
-          </Box>
-
-          <List dense>
-            {paginatedNotes.map((note) => {
-              // Get the actual index from the original notes array
-              const actualIndex = notes.findIndex((n) => n === note);
-
-              return (
+            {filtersVisible && (
+              <>
                 <Box
-                  key={actualIndex}
                   sx={{
-                    mb: 1.5,
-                    backgroundColor: "rgba(255, 255, 255, 1)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 2,
-                    p: 2,
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    "&:hover": {
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
-                      transform: "translateY(-2px)",
-                    },
-                    "&:hover .note-actions": {
-                      opacity: 1,
-                    },
+                    display: "flex",
+                    gap: 2,
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
-                  onClick={() => handleEditNote(note, actualIndex)}
                 >
-                  {/* Header: Title + Action Icons */}
+                  {/* Left side: Filter controls */}
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      mb: 1,
+                      gap: 2,
+                      flexWrap: "wrap",
+                      alignItems: "center",
                     }}
                   >
-                    <Typography
-                      variant="h6"
-                      fontWeight={600}
-                      sx={{ flexGrow: 1 }}
-                    >
-                      {note.title || "Untitled Note"}
-                    </Typography>
-                    <Box
-                      className="note-actions"
+                    {/* Country Filter with multi-section options */}
+                    <FormControl
+                      size="small"
                       sx={{
-                        display: "flex",
-                        gap: 0.5,
-                        opacity: 0.7,
-                        transition: "opacity 0.2s",
+                        minWidth: 180,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
                       }}
                     >
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditNote(note, actualIndex);
+                      <InputLabel>Country</InputLabel>
+                      <Select
+                        value={
+                          countrySectionCount > 0
+                            ? `sections_${countrySectionCount}`
+                            : filterCountry
+                        }
+                        label="Country"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.startsWith("sections_")) {
+                            const count = parseInt(value.split("_")[1]);
+                            setCountrySectionCount(count);
+                            setFilterCountry("All");
+                          } else {
+                            setCountrySectionCount(0);
+                            setFilterCountry(value);
+                          }
+                          handleFilterChange();
                         }}
-                        sx={{ padding: "4px" }}
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteNote(actualIndex);
+                        <MenuItem value="All">All Countries</MenuItem>
+                        <Divider />
+                        <MenuItem value="sections_1">
+                          Display notes for 1 country
+                        </MenuItem>
+                        <MenuItem value="sections_2">
+                          Display notes for 2 countries
+                        </MenuItem>
+                        <MenuItem value="sections_3">
+                          Display notes for 3 countries
+                        </MenuItem>
+                        <MenuItem value="sections_4">
+                          Display notes for 4 countries
+                        </MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {/* Tags Filter */}
+                    <FormControl
+                      size="small"
+                      sx={{
+                        minWidth: 150,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
+                      }}
+                    >
+                      <InputLabel>Tags</InputLabel>
+                      <Select
+                        value=""
+                        label="Tags"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value && !filterTags.includes(value)) {
+                            setFilterTags([...filterTags, value]);
+                            handleFilterChange();
+                          }
                         }}
-                        sx={{ padding: "4px" }}
-                        color="error"
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
+                        {TAG_CATEGORIES.filter(
+                          (tag) => !filterTags.includes(tag),
+                        ).map((tag) => (
+                          <MenuItem key={tag} value={tag}>
+                            {tag}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    {/* Selected Tags Display */}
+                    {filterTags.length > 0 && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 0.5,
+                          alignItems: "center",
+                        }}
+                      >
+                        {filterTags.map((tag) => (
+                          <Chip
+                            key={tag}
+                            label={tag}
+                            size="small"
+                            onDelete={() => {
+                              setFilterTags(
+                                filterTags.filter((t) => t !== tag),
+                              );
+                              handleFilterChange();
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+
+                    {/* Sort Order */}
+                    <FormControl
+                      size="small"
+                      sx={{
+                        minWidth: 150,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
+                      }}
+                    >
+                      <InputLabel>Sort By</InputLabel>
+                      <Select
+                        value={sortOrder}
+                        label="Sort By"
+                        onChange={(e) => {
+                          setSortOrder(e.target.value);
+                          handleFilterChange();
+                        }}
+                      >
+                        <MenuItem value="newest">Newest First</MenuItem>
+                        <MenuItem value="oldest">Oldest First</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {/* Date Range Start */}
+                    <TextField
+                      label="From Date"
+                      type="date"
+                      size="small"
+                      value={dateRangeStart}
+                      onChange={(e) => {
+                        setDateRangeStart(e.target.value);
+                        handleFilterChange();
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                      sx={{
+                        minWidth: 150,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
+                      }}
+                    />
+
+                    {/* Date Range End */}
+                    <TextField
+                      label="To Date"
+                      type="date"
+                      size="small"
+                      value={dateRangeEnd}
+                      onChange={(e) => {
+                        setDateRangeEnd(e.target.value);
+                        handleFilterChange();
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                      sx={{
+                        minWidth: 150,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
+                      }}
+                    />
+
+                    {/* Year Filter */}
+                    <FormControl
+                      size="small"
+                      sx={{
+                        minWidth: 100,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
+                      }}
+                    >
+                      <InputLabel>Year</InputLabel>
+                      <Select
+                        value={filterYear}
+                        label="Year"
+                        onChange={(e) => {
+                          setFilterYear(e.target.value);
+                          handleFilterChange();
+                        }}
+                      >
+                        <MenuItem value="">All Years</MenuItem>
+                        {Array.from(
+                          { length: 50 },
+                          (_, i) => new Date().getFullYear() - i,
+                        ).map((year) => (
+                          <MenuItem key={year} value={year.toString()}>
+                            {year}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+
+                    {/* Items Per Page */}
+                    <FormControl
+                      size="small"
+                      sx={{
+                        minWidth: 120,
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "black",
+                          borderWidth: "1px",
+                        },
+                      }}
+                    >
+                      <InputLabel>Per Page</InputLabel>
+                      <Select
+                        value={itemsPerPage}
+                        label="Per Page"
+                        onChange={(e) => {
+                          setItemsPerPage(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <MenuItem value={20}>20</MenuItem>
+                        <MenuItem value={40}>40</MenuItem>
+                        <MenuItem value={60}>60</MenuItem>
+                        <MenuItem value={80}>80</MenuItem>
+                        <MenuItem value={100}>100</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {/* Clear Filters Button */}
+                    {(filterCountry !== "All" ||
+                      filterTags.length > 0 ||
+                      dateRangeStart ||
+                      dateRangeEnd ||
+                      filterYear ||
+                      sortOrder !== "newest" ||
+                      countrySectionCount > 0) && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => {
+                          setFilterCountry("All");
+                          setFilterTags([]);
+                          setSortOrder("newest");
+                          setDateRangeStart("");
+                          setDateRangeEnd("");
+                          setFilterYear("");
+                          setCountrySectionCount(0);
+                          setCountryFilters(["", "", "", ""]);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        Reset Filters
+                      </Button>
+                    )}
                   </Box>
 
-                  {/* Country Badge */}
-                  {note.country && (
-                    <Box sx={{ mb: 1 }}>
-                      <Chip
-                        label={note.country}
-                        size="small"
+                  {/* Right side: Pagination */}
+                  {filteredNotes.length > 0 && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        {startIndex + 1}-
+                        {Math.min(endIndex, filteredNotes.length)} of{" "}
+                        {filteredNotes.length}
+                      </Typography>
+                      <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={(_, page) => setCurrentPage(page)}
                         color="primary"
-                        sx={{ height: "22px", fontSize: "0.75rem" }}
+                        size="small"
                       />
                     </Box>
                   )}
-
-                  {/* Text Preview */}
-                  <Typography
-                    variant="body2"
-                    color="text.primary"
-                    sx={{ mb: 1 }}
-                  >
-                    {note.text.substring(0, 200)}
-                    {note.text.length > 200 && "..."}
-                  </Typography>
-
-                  {/* Date Information */}
-                  <Typography
-                    variant="caption"
-                    sx={{ color: "#999", fontSize: "0.7rem" }}
-                  >
-                    {note.createdAt.toLocaleString()}
-                    {note.updatedAt.getTime() !== note.createdAt.getTime() && (
-                      <> • Updated {note.updatedAt.toLocaleString()}</>
-                    )}
-                  </Typography>
-                  {note.source && (
-                    <>
-                      {" • "}
-                      <Link
-                        href={note.source}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="caption"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Source
-                      </Link>
-                    </>
-                  )}
                 </Box>
-              );
-            })}
-            {paginatedNotes.length === 0 && filteredNotes.length === 0 && (
-              <Box
-                sx={{
-                  textAlign: "center",
-                  padding: "40px",
-                  color: "text.secondary",
-                }}
-              >
-                <Typography variant="h6" gutterBottom>
-                  No notes found
-                </Typography>
-                <Typography variant="body2">
-                  {notes.length === 0
-                    ? "Use the Add Note button to get started!"
-                    : "Try adjusting your filters"}
-                </Typography>
-              </Box>
+
+                {/* Country Selectors (shown when country sections mode is enabled) */}
+                {countrySectionCount > 0 && (
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
+                      gap: 2,
+                      mt: 3,
+                      pt: 3,
+                      borderTop: "1px solid #ddd",
+                    }}
+                  >
+                    {countryFilters
+                      .slice(0, countrySectionCount)
+                      .map((country, index) => (
+                        <Autocomplete
+                          key={index}
+                          options={COUNTRIES}
+                          value={country || null}
+                          onChange={(_, newValue) => {
+                            const newFilters = [...countryFilters] as [
+                              string,
+                              string,
+                              string,
+                              string,
+                            ];
+                            newFilters[index] = newValue || "";
+                            setCountryFilters(newFilters);
+                          }}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label="Select a country"
+                              size="small"
+                              sx={{
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                  borderColor: "black",
+                                  borderWidth: "1px",
+                                },
+                              }}
+                            />
+                          )}
+                          size="small"
+                        />
+                      ))}
+                  </Box>
+                )}
+              </>
             )}
-          </List>
+          </Box>
+
+          {/* Normal view (single list) */}
+          {countrySectionCount === 0 && (
+            <List dense>
+              {paginatedNotes.map((note) => {
+                // Get the actual index from the original notes array
+                const actualIndex = notes.findIndex((n) => n === note);
+
+                return (
+                  <Box
+                    key={actualIndex}
+                    sx={{
+                      mb: 1.5,
+                      backgroundColor: "rgba(255, 255, 255, 1)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      border: "2px solid black",
+                      borderRadius: 2,
+                      p: 2,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      "&:hover": {
+                        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                        transform: "translateY(-2px)",
+                      },
+                      "&:hover .note-actions": {
+                        opacity: 1,
+                      },
+                    }}
+                    onClick={() => handleEditNote(note, actualIndex)}
+                  >
+                    {/* Header: Title + Action Icons */}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 1,
+                      }}
+                    >
+                      <Typography
+                        variant="h6"
+                        fontWeight={600}
+                        sx={{ flexGrow: 1 }}
+                      >
+                        {note.title || "Untitled Note"}
+                      </Typography>
+                      <Box
+                        className="note-actions"
+                        sx={{
+                          display: "flex",
+                          gap: 0.5,
+                          opacity: 0.7,
+                          transition: "opacity 0.2s",
+                        }}
+                      >
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditNote(note, actualIndex);
+                          }}
+                          sx={{ padding: "4px" }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteNote(actualIndex);
+                          }}
+                          sx={{ padding: "4px" }}
+                          color="error"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Box>
+
+                    {/* Country Badge */}
+                    {note.country && (
+                      <Box sx={{ mb: 1 }}>
+                        <Chip
+                          label={note.country}
+                          size="small"
+                          color="primary"
+                          sx={{ height: "22px", fontSize: "0.75rem" }}
+                        />
+                      </Box>
+                    )}
+
+                    {/* Text Preview */}
+                    <Typography
+                      variant="body2"
+                      color="text.primary"
+                      sx={{ mb: 1 }}
+                    >
+                      {note.text.substring(0, 200)}
+                      {note.text.length > 200 && "..."}
+                    </Typography>
+
+                    {/* Date Information */}
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "#999", fontSize: "0.7rem" }}
+                    >
+                      {note.createdAt.toLocaleString()}
+                      {note.updatedAt.getTime() !==
+                        note.createdAt.getTime() && (
+                        <> • Updated {note.updatedAt.toLocaleString()}</>
+                      )}
+                    </Typography>
+                    {note.source && (
+                      <>
+                        {" • "}
+                        <Link
+                          href={note.source}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          variant="caption"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Source
+                        </Link>
+                      </>
+                    )}
+                  </Box>
+                );
+              })}
+              {paginatedNotes.length === 0 && filteredNotes.length === 0 && (
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    padding: "40px",
+                    color: "text.secondary",
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    No notes found
+                  </Typography>
+                  <Typography variant="body2">
+                    {notes.length === 0
+                      ? "Use the Add Note button to get started!"
+                      : "Try adjusting your filters"}
+                  </Typography>
+                </Box>
+              )}
+            </List>
+          )}
+
+          {/* Country sections view (dynamic columns) */}
+          {countrySectionCount > 0 && (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
+                gap: 2,
+              }}
+            >
+              {countryFilters
+                .slice(0, countrySectionCount)
+                .map((country, sectionIndex) => {
+                  const sectionNotes = getNotesForCountry(country);
+                  return (
+                    <Box
+                      key={sectionIndex}
+                      sx={{
+                        border: "2px solid black",
+                        borderRadius: 2,
+                        p: 2,
+                        backgroundColor: "#f9f9f9",
+                        minHeight: "300px",
+                      }}
+                    >
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={600}
+                        sx={{ mb: 2, borderBottom: "1px solid #ddd", pb: 1 }}
+                      >
+                        {country || "No country selected"}
+                        {country && ` (${sectionNotes.length})`}
+                      </Typography>
+                      {!country && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ textAlign: "center", mt: 4 }}
+                        >
+                          No notes available
+                        </Typography>
+                      )}
+                      {country && sectionNotes.length === 0 && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ textAlign: "center", mt: 4 }}
+                        >
+                          No notes for {country}
+                        </Typography>
+                      )}
+                      {sectionNotes.map((note) => {
+                        const actualIndex = notes.findIndex((n) => n === note);
+                        return (
+                          <Box
+                            key={actualIndex}
+                            sx={{
+                              mb: 1,
+                              backgroundColor: "white",
+                              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                              border: "1px solid #ddd",
+                              borderRadius: 1,
+                              p: 1.5,
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                              "&:hover": {
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                              },
+                            }}
+                            onClick={() => handleEditNote(note, actualIndex)}
+                          >
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              sx={{ mb: 0.5 }}
+                            >
+                              {note.title || "Untitled"}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{
+                                display: "block",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {note.text.substring(0, 50)}...
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  );
+                })}
+            </Box>
+          )}
         </Paper>
       </Container>
 
@@ -729,13 +1117,28 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             <InputLabel>Tags</InputLabel>
             <Select
               multiple
+              open={addTagsOpen}
+              onOpen={() => setAddTagsOpen(true)}
+              onClose={() => setAddTagsOpen(false)}
               value={addTags}
-              onChange={(e) => setAddTags(e.target.value as string[])}
+              onChange={(e) => {
+                setAddTags(e.target.value as string[]);
+                setAddTagsOpen(false);
+              }}
               input={<OutlinedInput label="Tags" />}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
-                    <Chip key={value} label={value} size="small" />
+                    <Chip
+                      key={value}
+                      label={value}
+                      size="small"
+                      onDelete={(e) => {
+                        e.stopPropagation();
+                        setAddTags(addTags.filter((t) => t !== value));
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    />
                   ))}
                 </Box>
               )}
@@ -851,13 +1254,28 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             <InputLabel>Tags</InputLabel>
             <Select
               multiple
+              open={editTagsOpen}
+              onOpen={() => setEditTagsOpen(true)}
+              onClose={() => setEditTagsOpen(false)}
               value={editTags}
-              onChange={(e) => setEditTags(e.target.value as string[])}
+              onChange={(e) => {
+                setEditTags(e.target.value as string[]);
+                setEditTagsOpen(false);
+              }}
               input={<OutlinedInput label="Tags" />}
               renderValue={(selected) => (
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                   {selected.map((value) => (
-                    <Chip key={value} label={value} size="small" />
+                    <Chip
+                      key={value}
+                      label={value}
+                      size="small"
+                      onDelete={(e) => {
+                        e.stopPropagation();
+                        setEditTags(editTags.filter((t) => t !== value));
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    />
                   ))}
                 </Box>
               )}
