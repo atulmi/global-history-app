@@ -48,7 +48,9 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingNoteIndex, setDeletingNoteIndex] = useState<number | null>(null);
+  const [deletingNoteIndex, setDeletingNoteIndex] = useState<number | null>(
+    null,
+  );
 
   // Success message state
   const [successOpen, setSuccessOpen] = useState(false);
@@ -66,7 +68,9 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
   // Country filter mode state (multi-section view)
   const [countrySectionCount, setCountrySectionCount] = useState(0);
-  const [countryFilters, setCountryFilters] = useState<[string, string, string, string]>(["", "", "", ""]);
+  const [countryFilters, setCountryFilters] = useState<
+    [string, string, string, string]
+  >(["", "", "", ""]);
 
   const handleAddNote = (note: Note) => {
     addNote(note);
@@ -109,13 +113,19 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const baseFilter = (note: Note, skipCountryFilter = false) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
+      !searchTerm ||
       note.text.toLowerCase().includes(searchLower) ||
       note.title?.toLowerCase().includes(searchLower) ||
+      note.country?.toLowerCase().includes(searchLower) ||
       note.tags.some((tag) => tag.toLowerCase().includes(searchLower));
 
     if (!matchesSearch) return false;
 
-    if (!skipCountryFilter && countrySectionCount === 0 && filterCountry !== "All") {
+    if (
+      !skipCountryFilter &&
+      countrySectionCount === 0 &&
+      filterCountry !== "All"
+    ) {
       if (note.country !== filterCountry) return false;
     }
 
@@ -143,7 +153,11 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
   const getNotesForCountry = (country: string) => {
     if (!country) return [];
-    return sortNotes(notes.filter((note) => baseFilter(note, true) && note.country === country));
+    return sortNotes(
+      notes.filter(
+        (note) => baseFilter(note, true) && note.country === country,
+      ),
+    );
   };
 
   // Pagination
@@ -168,7 +182,14 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     countrySectionCount > 0;
 
   return (
-    <Box sx={{ height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        height: "100vh",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       <Navbar
         onAddNote={() => setAddDialogOpen(true)}
         onNavigateBack={() => navigate("/")}
@@ -242,10 +263,20 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                   );
                 })}
                 {paginatedNotes.length === 0 && (
-                  <Box sx={{ textAlign: "center", padding: "40px", color: "text.secondary" }}>
-                    <Typography variant="h6" gutterBottom>No notes found</Typography>
+                  <Box
+                    sx={{
+                      textAlign: "center",
+                      padding: "40px",
+                      color: "text.secondary",
+                    }}
+                  >
+                    <Typography variant="h6" gutterBottom>
+                      No notes found
+                    </Typography>
                     <Typography variant="body2">
-                      {notes.length === 0 ? "Use the Add Note button to get started!" : "Try adjusting your filters"}
+                      {notes.length === 0
+                        ? "Use the Add Note button to get started!"
+                        : "Try adjusting your filters"}
                     </Typography>
                   </Box>
                 )}
@@ -253,66 +284,113 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             )}
 
             {countrySectionCount > 0 && (
-              <Box sx={{ display: "grid", gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`, gap: 2 }}>
-                {countryFilters.slice(0, countrySectionCount).map((country, sectionIndex) => {
-                  const sectionNotes = getNotesForCountry(country);
-                  return (
-                    <Box
-                      key={sectionIndex}
-                      sx={{
-                        border: "2px solid black",
-                        borderRadius: 2,
-                        p: 2,
-                        backgroundColor: "#f9f9f9",
-                        minHeight: "300px",
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, pb: 1, borderBottom: "1px solid #ddd" }}>
-                        <Autocomplete
-                          options={COUNTRIES}
-                          value={country || null}
-                          onChange={(_, newValue) => {
-                            const newFilters = [...countryFilters] as [string, string, string, string];
-                            newFilters[sectionIndex] = newValue || "";
-                            setCountryFilters(newFilters);
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
+                  gap: 2,
+                }}
+              >
+                {countryFilters
+                  .slice(0, countrySectionCount)
+                  .map((country, sectionIndex) => {
+                    const sectionNotes = getNotesForCountry(country);
+                    return (
+                      <Box
+                        key={sectionIndex}
+                        sx={{
+                          border: "2px solid black",
+                          borderRadius: 2,
+                          p: 2,
+                          backgroundColor: "#f9f9f9",
+                          minHeight: "300px",
+                          maxHeight: "500px",
+                          display: "flex",
+                          flexDirection: "column",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 2,
+                            pb: 1,
+                            borderBottom: "1px solid #ddd",
+                            flexShrink: 0,
                           }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              label={sectionNotes.length > 0 ? `Select a country (${sectionNotes.length})` : "Select a country"}
-                              size="small"
-                              sx={{ "& .MuiOutlinedInput-notchedOutline": { borderColor: "black", borderWidth: "1px" } }}
-                            />
-                          )}
-                          size="small"
-                          sx={{ width: 200 }}
-                        />
-                      </Box>
-                      {!country && (
-                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-                          No notes available
-                        </Typography>
-                      )}
-                      {country && sectionNotes.length === 0 && (
-                        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-                          No notes for {country}
-                        </Typography>
-                      )}
-                      {sectionNotes.map((note) => {
-                        const actualIndex = notes.findIndex((n) => n === note);
-                        return (
-                          <NoteCard
-                            key={actualIndex}
-                            note={note}
-                            onEdit={() => handleEditNote(note, actualIndex)}
-                            onDelete={() => handleDeleteNote(actualIndex)}
-                            compact
+                        >
+                          <Autocomplete
+                            options={COUNTRIES}
+                            value={country || null}
+                            onChange={(_, newValue) => {
+                              const newFilters = [...countryFilters] as [
+                                string,
+                                string,
+                                string,
+                                string,
+                              ];
+                              newFilters[sectionIndex] = newValue || "";
+                              setCountryFilters(newFilters);
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label={
+                                  sectionNotes.length > 0
+                                    ? `Select a country (${sectionNotes.length})`
+                                    : "Select a country"
+                                }
+                                size="small"
+                                sx={{
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "black",
+                                    borderWidth: "1px",
+                                  },
+                                }}
+                              />
+                            )}
+                            size="small"
+                            sx={{ width: 200 }}
                           />
-                        );
-                      })}
-                    </Box>
-                  );
-                })}
+                        </Box>
+                        <Box sx={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
+                          {!country && (
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ textAlign: "center", mt: 4 }}
+                            >
+                              No notes available
+                            </Typography>
+                          )}
+                          {country && sectionNotes.length === 0 && (
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ textAlign: "center", mt: 4 }}
+                            >
+                              No notes for {country}
+                            </Typography>
+                          )}
+                          {sectionNotes.map((note) => {
+                            const actualIndex = notes.findIndex(
+                              (n) => n === note,
+                            );
+                            return (
+                              <NoteCard
+                                key={actualIndex}
+                                note={note}
+                                onEdit={() => handleEditNote(note, actualIndex)}
+                                onDelete={() => handleDeleteNote(actualIndex)}
+                                compact
+                              />
+                            );
+                          })}
+                        </Box>
+                      </Box>
+                    );
+                  })}
               </Box>
             )}
           </Box>
@@ -328,7 +406,11 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
       <NoteDialog
         open={editDialogOpen}
-        onClose={() => { setEditDialogOpen(false); setEditingNote(null); setEditingIndex(null); }}
+        onClose={() => {
+          setEditDialogOpen(false);
+          setEditingNote(null);
+          setEditingIndex(null);
+        }}
         onSave={handleSaveEdit}
         note={editingNote}
         mode="edit"
@@ -336,7 +418,10 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}
-        onClose={() => { setDeleteDialogOpen(false); setDeletingNoteIndex(null); }}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setDeletingNoteIndex(null);
+        }}
         onConfirm={confirmDeleteNote}
       />
 

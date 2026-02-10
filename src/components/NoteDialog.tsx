@@ -107,9 +107,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent
-        sx={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
-      >
+      <DialogContent sx={{ overflow: "visible" }}>
         <TextField
           label="Title"
           variant="outlined"
@@ -130,19 +128,18 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           variant="outlined"
           fullWidth
           multiline
-          minRows={6}
-          maxRows={12}
+          rows={10}
           value={text}
           onChange={(e) => setText(e.target.value)}
           required
           sx={{
             marginBottom: 2,
-            flexShrink: 0,
             "& .MuiOutlinedInput-root": {
               backgroundColor: "#fafafa",
               boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
-              maxHeight: "300px",
-              overflow: "auto",
+            },
+            "& .MuiInputBase-inputMultiline": {
+              overflow: "auto !important",
             },
           }}
         />
