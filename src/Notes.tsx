@@ -512,11 +512,9 @@ const Notes: React.FC<NotesProps> = ({
                             fontSize: "0.65rem",
                           }}
                         >
-                          {note.createdAt.toLocaleString()}
-                          {note.updatedAt.getTime() !==
-                            note.createdAt.getTime() && (
-                            <> • Updated {note.updatedAt.toLocaleString()}</>
-                          )}
+                          {note.updatedAt.getTime() !== note.createdAt.getTime()
+                            ? `Updated ${note.updatedAt.toLocaleString()}`
+                            : "Created " + note.createdAt.toLocaleString()}
                         </Typography>
                       </ListItem>
                     );
