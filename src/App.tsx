@@ -2,18 +2,7 @@ import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Notes from "./Notes.tsx";
 import AllNotesPage from "./pages/AllNotesPage.tsx";
-
-type Note = {
-  text: string;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  title?: string;
-  country?: string;
-  source?: string;
-  isPinned?: boolean;
-  isArchived?: boolean;
-};
+import { type Note } from "./types/Note";
 
 function App() {
   const [notes, setNotes] = useState<Note[]>([]);
