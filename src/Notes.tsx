@@ -7,8 +7,11 @@ import NoteDialog from "./components/NoteDialog";
 import DeleteConfirmDialog from "./components/DeleteConfirmDialog";
 import SuccessSnackbar from "./components/SuccessSnackbar";
 import WikipediaDrawer from "./components/WikipediaDrawer";
-import RecentNotesSidebar from "./components/RecentNotesSidebar";
-import { fetchRandomCountryHistory, type WikipediaArticle } from "./services/wikipediaApi";
+import ExploreNotesSidebar from "./components/ExploreNotesSidebar";
+import {
+  fetchRandomCountryHistory,
+  type WikipediaArticle,
+} from "./services/wikipediaApi";
 import { type Note } from "./types/Note";
 
 type NotesProps = {
@@ -36,7 +39,9 @@ const Notes: React.FC<NotesProps> = ({
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   // Wikipedia integration state
-  const [currentArticle, setCurrentArticle] = useState<WikipediaArticle | null>(null);
+  const [currentArticle, setCurrentArticle] = useState<WikipediaArticle | null>(
+    null,
+  );
   const [editedArticleText, setEditedArticleText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +55,9 @@ const Notes: React.FC<NotesProps> = ({
 
   // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingNoteIndex, setDeletingNoteIndex] = useState<number | null>(null);
+  const [deletingNoteIndex, setDeletingNoteIndex] = useState<number | null>(
+    null,
+  );
 
   // Success message state
   const [successOpen, setSuccessOpen] = useState(false);
@@ -164,9 +171,6 @@ const Notes: React.FC<NotesProps> = ({
     }
   };
 
-  // Get 5 most recent notes for sidebar
-  const recentNotes = notes.slice(0, 5);
-
   return (
     <Box
       sx={{
@@ -182,12 +186,18 @@ const Notes: React.FC<NotesProps> = ({
         onNavigateToAllNotes={() => navigate("/all-notes")}
       />
 
-      <Box sx={{ flexGrow: 1, overflow: "hidden", display: "flex", width: "100%" }}>
-        <Grid container spacing={0} sx={{ height: "100%", margin: 0, width: "100%" }}>
-          {/* Left Sidebar - Recent Notes */}
+      <Box
+        sx={{ flexGrow: 1, overflow: "hidden", display: "flex", width: "100%" }}
+      >
+        <Grid
+          container
+          spacing={0}
+          sx={{ height: "100%", margin: 0, width: "100%" }}
+        >
+          {/* Left Sidebar - Explore Your Notes (View Recently Added Notes or Random Notes) */}
           <Grid size={2} sx={{ height: "100%" }}>
-            <RecentNotesSidebar
-              notes={recentNotes}
+            <ExploreNotesSidebar
+              notes={notes}
               totalNotes={notes.length}
               onEditNote={handleEditNote}
               onDeleteNote={handleDeleteNote}
@@ -213,7 +223,8 @@ const Notes: React.FC<NotesProps> = ({
                 🌍 Explore Global History
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Click any country to discover random Wikipedia articles about that country and its history
+                Click any country to discover random Wikipedia articles about
+                that country and its history
               </Typography>
               <Box sx={{ flex: 1, minHeight: 0 }}>
                 <WorldMap onCountryClick={handleCountryClick} />
