@@ -32,6 +32,7 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
+  Tooltip,
   type SxProps,
   type Theme,
 } from "@mui/material";
@@ -142,8 +143,9 @@ const NotesTable: React.FC<NotesTableProps> = ({
         sx={{
           flex: 1,
           overflow: "auto",
-          border: "1px solid rgba(0,0,0,0.15)",
-          borderRadius: 1,
+          borderLeft: "1px solid black",
+          borderRight: "1px solid black",
+          borderBottom: "1px solid black",
         }}
       >
         <Table size="small" stickyHeader>
@@ -156,20 +158,28 @@ const NotesTable: React.FC<NotesTableProps> = ({
                   direction={titleSort ?? "asc"}
                   onClick={handleTitleSortClick}
                   sx={sortLabelSx}
-                  IconComponent={titleSort === null ? UnfoldMoreIcon : ArrowDownwardIcon}
+                  IconComponent={
+                    titleSort === null ? UnfoldMoreIcon : ArrowDownwardIcon
+                  }
                 >
                   Title
                 </TableSortLabel>
               </TableCell>
               {showCountry && (
-                <TableCell sx={{ ...headerCellSx, width: 140 }}>Country</TableCell>
+                <TableCell sx={{ ...headerCellSx, width: 140 }}>
+                  Country
+                </TableCell>
               )}
               {/* Tag and Created columns are slightly narrower in section mode */}
-              <TableCell sx={{ ...headerCellSx, width: showCountry ? 180 : 160 }}>
+              <TableCell
+                sx={{ ...headerCellSx, width: showCountry ? 180 : 160 }}
+              >
                 Tags
               </TableCell>
               <TableCell sx={headerCellSx}>Text</TableCell>
-              <TableCell sx={{ ...headerCellSx, width: showCountry ? 120 : 110 }}>
+              <TableCell
+                sx={{ ...headerCellSx, width: showCountry ? 120 : 110 }}
+              >
                 Created
               </TableCell>
               <TableCell sx={{ ...headerCellSx, width: showCountry ? 90 : 80 }}>
@@ -191,10 +201,34 @@ const NotesTable: React.FC<NotesTableProps> = ({
                   <TableCell>{note.title || "(untitled)"}</TableCell>
                   {showCountry && <TableCell>{note.country || ""}</TableCell>}
                   <TableCell>{note.tags.join(", ")}</TableCell>
-                  <TableCell>
-                    {note.text.substring(0, textPreviewLength) +
-                      (note.text.length > textPreviewLength ? "..." : "")}
-                  </TableCell>
+                  <Tooltip
+                    title={
+                      <Box
+                        sx={{
+                          maxHeight: 300,
+                          overflowY: "auto",
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {note.text}
+                      </Box>
+                    }
+                    arrow
+                    slotProps={{
+                      tooltip: { sx: { maxWidth: 400, p: 1.5 } },
+                    }}
+                  >
+                    <TableCell
+                      sx={{
+                        maxWidth: "100px",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {note.text}
+                    </TableCell>
+                  </Tooltip>
                   <TableCell>{note.createdAt.toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Box sx={{ display: "flex", gap: 0.5 }}>
