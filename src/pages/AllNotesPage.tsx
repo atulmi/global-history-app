@@ -18,6 +18,13 @@ import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import SuccessSnackbar from "../components/SuccessSnackbar";
 import FilterControls from "../components/FilterControls";
 
+/**
+ * Displays all notes with filtering, sorting, and pagination.
+ *
+ * Supports two view modes:
+ * - Single list: the default paginated view with global country/year/sort filters.
+ * - Multi-section grid: up to 4 side-by-side columns, each with notes regarding a selected country (each column has its own country).
+ */
 type AllNotesPageProps = {
   notes: Note[];
   addNote: (note: Note) => void;
@@ -63,7 +70,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   // Filter state
   const [filterCountry, setFilterCountry] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<string>("newest");
-  const [filterYear, setFilterYear] = useState<string>("");
   const [filtersVisible, setFiltersVisible] = useState(true);
 
   // Country filter mode state (multi-section view)
@@ -109,8 +115,10 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     }
   };
 
-  // Base filter function
-  const baseFilter = (note: Note, skipCountryFilter = false) => {
+  // Applies search, country, and year filters to a single note.
+  // skipGlobalCountryFilter is set to true in multi-section mode so each section
+  // can independently override the country instead of using the global filter.
+  const baseFilter = (note: Note, skipGlobalCountryFilter = false) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
       !searchTerm ||
@@ -122,16 +130,11 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     if (!matchesSearch) return false;
 
     if (
-      !skipCountryFilter &&
+      !skipGlobalCountryFilter &&
       countrySectionCount === 0 &&
       filterCountry !== "All"
     ) {
       if (note.country !== filterCountry) return false;
-    }
-
-    if (filterYear) {
-      const noteYear = note.createdAt.getFullYear().toString();
-      if (noteYear !== filterYear) return false;
     }
 
     return true;
@@ -151,6 +154,8 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
   const filteredNotes = sortNotes(notes.filter((note) => baseFilter(note)));
 
+  // Returns sorted, filtered notes for a specific country section column.
+  // Passes skipGlobalCountryFilter=true so the global country dropdown is ignored.
   const getNotesForCountry = (country: string) => {
     if (!country) return [];
     return sortNotes(
@@ -169,15 +174,14 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const handleResetFilters = () => {
     setFilterCountry("All");
     setSortOrder("newest");
-    setFilterYear("");
     setCountrySectionCount(0);
     setCountryFilters(["", "", "", ""]);
     setCurrentPage(1);
   };
 
+  // Show the reset button only when any filter differs from its default value.
   const showResetButton =
     filterCountry !== "All" ||
-    !!filterYear ||
     sortOrder !== "newest" ||
     countrySectionCount > 0;
 
@@ -233,8 +237,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             setCountrySectionCount={setCountrySectionCount}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
-            filterYear={filterYear}
-            setFilterYear={setFilterYear}
             itemsPerPage={itemsPerPage}
             setItemsPerPage={setItemsPerPage}
             currentPage={currentPage}
@@ -247,11 +249,14 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             showResetButton={showResetButton}
           />
 
-          {/* Notes Container */}
+          {/* Notes container — renders either the single paginated list or the multi-section grid */}
           <Box sx={{ flex: 1, overflowX: "hidden" }}>
+            {/* Single-list mode: paginated, uses global filters */}
             {countrySectionCount === 0 && (
               <List dense>
                 {paginatedNotes.map((note) => {
+                  // Look up the note's position in the original array so that
+                  // edit/delete operations target the correct index.
                   const actualIndex = notes.findIndex((n) => n === note);
                   return (
                     <NoteCard
@@ -283,6 +288,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
               </List>
             )}
 
+            {/* Multi-section mode: side-by-side columns, each with its own country picker */}
             {countrySectionCount > 0 && (
               <Box
                 sx={{
@@ -374,6 +380,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                             </Typography>
                           )}
                           {sectionNotes.map((note) => {
+                            // Same reference-equality lookup as in single-list mode.
                             const actualIndex = notes.findIndex(
                               (n) => n === note,
                             );

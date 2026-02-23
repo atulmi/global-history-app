@@ -3,6 +3,7 @@ import { AppBar, Toolbar, Typography, Button, TextField, Box, IconButton } from 
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ViewListIcon from "@mui/icons-material/ViewList";
+import { useNavigate } from "react-router-dom";
 
 type NavbarProps = {
   onAddNote: () => void;
@@ -21,6 +22,8 @@ const Navbar: React.FC<NavbarProps> = ({
   searchTerm = "",
   onSearchChange,
 }) => {
+  const navigate = useNavigate();
+
   return (
     <AppBar
       position="static"
@@ -43,10 +46,12 @@ const Navbar: React.FC<NavbarProps> = ({
         )}
         <Typography
           variant="h5"
+          onClick={() => navigate("/")}
           sx={{
             flexGrow: showSearch ? 0 : 1,
             fontWeight: 700,
             letterSpacing: "0.5px",
+            cursor: "pointer",
           }}
         >
           🌍 GlobalHistory

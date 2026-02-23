@@ -13,23 +13,35 @@ import {
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
+/**
+ * Collapsible filter bar and pagination strip for the All Notes page.
+ *
+ * The Country dropdown doubles as a view-mode switcher:
+ * - Selecting "All Countries" or a plain country value keeps the single-list
+ *   view (countrySectionCount = 0).
+ * - Selecting a "sections_N" option switches to the multi-column grid view
+ *   (countrySectionCount = N) and clears the global country filter.
+ *
+ * Every filter change resets the page to 1 to avoid landing on a now-empty page.
+ * Pagination and the range label are hidden when there are no results.
+ */
 type FilterControlsProps = {
   filtersVisible: boolean;
   setFiltersVisible: (visible: boolean) => void;
   filterCountry: string;
   setFilterCountry: (country: string) => void;
+  // 0 = single-list mode; 1-4 = number of side-by-side country columns
   countrySectionCount: number;
   setCountrySectionCount: (count: number) => void;
   sortOrder: string;
   setSortOrder: (order: string) => void;
-  filterYear: string;
-  setFilterYear: (year: string) => void;
   itemsPerPage: number;
   setItemsPerPage: (count: number) => void;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  // Pre-computed slice bounds passed in so this component stays purely presentational
   startIndex: number;
   endIndex: number;
   onResetFilters: () => void;
@@ -45,8 +57,6 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   setCountrySectionCount,
   sortOrder,
   setSortOrder,
-  filterYear,
-  setFilterYear,
   itemsPerPage,
   setItemsPerPage,
   currentPage,
@@ -58,6 +68,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   onResetFilters,
   showResetButton,
 }) => {
+  // Shared sx snippet that gives all dropdowns a consistent black 1px border.
   const selectStyle = {
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: "black",
@@ -100,6 +111,9 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             <FormControl size="small" sx={{ minWidth: 180, ...selectStyle }}>
               <InputLabel>Country</InputLabel>
               <Select
+                // Reflect the active mode back into the select:
+                // multi-section mode uses "sections_N" synthetic values,
+                // single-list mode uses the actual country string (or "All").
                 value={
                   countrySectionCount > 0
                     ? `sections_${countrySectionCount}`
@@ -109,9 +123,11 @@ const FilterControls: React.FC<FilterControlsProps> = ({
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value.startsWith("sections_")) {
+                    // Switch to multi-column grid; clear the global country filter.
                     setCountrySectionCount(parseInt(value.split("_")[1]));
                     setFilterCountry("All");
                   } else {
+                    // Switch to single-list mode with the chosen country (or "All").
                     setCountrySectionCount(0);
                     setFilterCountry(value);
                   }
@@ -142,28 +158,6 @@ const FilterControls: React.FC<FilterControlsProps> = ({
               </Select>
             </FormControl>
 
-            <FormControl size="small" sx={{ minWidth: 100, ...selectStyle }}>
-              <InputLabel>Year</InputLabel>
-              <Select
-                value={filterYear}
-                label="Year"
-                onChange={(e) => {
-                  setFilterYear(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <MenuItem value="">All Years</MenuItem>
-                {Array.from(
-                  { length: 50 },
-                  (_, i) => new Date().getFullYear() - i
-                ).map((year) => (
-                  <MenuItem key={year} value={year.toString()}>
-                    {year}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
             <FormControl size="small" sx={{ minWidth: 120, ...selectStyle }}>
               <InputLabel>Per Page</InputLabel>
               <Select
@@ -189,6 +183,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             )}
           </Box>
 
+          {/* Pagination row — hidden when there are no results to avoid an orphaned widget */}
           {totalItems > 0 && (
             <Box
               sx={{

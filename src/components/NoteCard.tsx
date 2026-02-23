@@ -4,6 +4,17 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { type Note } from "../types/Note";
 
+/**
+ * Renders a single note as a clickable card.
+ *
+ * Two visual modes:
+ * - Default: full card with a 200-char preview, used in the single-list view.
+ * - Compact: denser card with a 60-char preview, used in multi-section columns.
+ *
+ * The entire card is clickable and opens the edit dialog. The edit/delete icon
+ * buttons stop click propagation so they don't also trigger the card's onClick.
+ * Action buttons are hidden at 0 opacity until the card is hovered.
+ */
 type NoteCardProps = {
   note: Note;
   onEdit: () => void;
@@ -17,6 +28,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
   onDelete,
   compact = false,
 }) => {
+  // Compact mode — used inside multi-section country columns
   if (compact) {
     return (
       <Box
@@ -99,6 +111,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
           </Box>
         )}
 
+        {/* 60-char truncated preview for the compact column layout */}
         <Typography
           variant="caption"
           sx={{ width: "100%", color: "#666", mb: 0.5 }}
@@ -106,6 +119,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
           {note.text.substring(0, 60)}...
         </Typography>
 
+        {/* Show "Updated" timestamp only if the note has been edited since creation */}
         <Typography
           variant="caption"
           sx={{ width: "100%", color: "#999", fontSize: "0.65rem" }}
@@ -118,6 +132,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
     );
   }
 
+  // Default (full) mode — used in the single paginated list
   return (
     <Box
       onClick={onEdit}
@@ -194,16 +209,19 @@ const NoteCard: React.FC<NoteCardProps> = ({
         </Box>
       )}
 
+      {/* 200-char preview; ellipsis only appended when text is actually truncated */}
       <Typography variant="body2" color="text.primary" sx={{ mb: 1 }}>
         {note.text.substring(0, 200)}
         {note.text.length > 200 && "..."}
       </Typography>
 
+      {/* Show "Updated" timestamp only if the note has been edited since creation */}
       <Typography variant="caption" sx={{ color: "#999", fontSize: "0.7rem" }}>
         {note.updatedAt.getTime() !== note.createdAt.getTime()
           ? `Updated ${note.updatedAt.toLocaleString()}`
           : "Created " + note.createdAt.toLocaleString()}
       </Typography>
+      {/* Source link — stopPropagation prevents the card's edit dialog from also opening */}
       {note.source && (
         <>
           {" • "}

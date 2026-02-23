@@ -16,6 +16,16 @@ import { COUNTRIES } from "../data/countries";
 import { type Note } from "../types/Note";
 import TagsSelect from "./TagsSelect";
 
+/**
+ * Modal dialog for creating or editing a note.
+ *
+ * - "add" mode: form starts blank; createdAt is set to now on save.
+ * - "edit" mode: form is pre-populated from the provided note; createdAt is
+ *   preserved and only updatedAt is refreshed on save.
+ *
+ * Both text content and country are required; the Save button is disabled and
+ * an inline error is shown until both fields are filled.
+ */
 type NoteDialogProps = {
   open: boolean;
   onClose: () => void;
@@ -87,8 +97,8 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       }}
       maxWidth="md"
       fullWidth
-      PaperProps={{
-        sx: { overflow: "hidden" },
+      slotProps={{
+        paper: { sx: { overflow: "hidden" } },
       }}
     >
       <DialogTitle>
