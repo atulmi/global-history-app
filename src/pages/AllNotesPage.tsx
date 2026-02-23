@@ -1,30 +1,24 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Paper,
-  Typography,
-  List,
-  Box,
-  TextField,
-} from "@mui/material";
+import { Container, Paper, Typography, Box, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Autocomplete from "@mui/material/Autocomplete";
 import { COUNTRIES } from "../data/countries";
 import { type Note } from "../types/Note";
 import Navbar from "../components/Navbar";
-import NoteCard from "../components/NoteCard";
 import NoteDialog from "../components/NoteDialog";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import SuccessSnackbar from "../components/SuccessSnackbar";
 import FilterControls from "../components/FilterControls";
+import NotesTable from "../components/NotesTable";
 
 /**
- * Displays all notes with filtering, sorting, and pagination.
+ * Displays all notes with filtering and sorting.
  *
  * Supports two view modes:
- * - Single list: the default paginated view with global country/year/sort filters.
- * - Multi-section grid: up to 4 side-by-side columns, each with notes regarding a selected country (each column has its own country).
+ * - Single list: all filtered notes in a single table.
+ * - Multi-section: up to 4 side-by-side tables, each filtered by a chosen country.
  */
+
 type AllNotesPageProps = {
   notes: Note[];
   addNote: (note: Note) => void;
@@ -48,31 +42,21 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  // Edit note state
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Delete confirmation state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingNoteIndex, setDeletingNoteIndex] = useState<number | null>(
     null,
   );
 
-  // Success message state
   const [successOpen, setSuccessOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
-
-  // Filter state
   const [filterCountry, setFilterCountry] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<string>("newest");
-  const [filtersVisible, setFiltersVisible] = useState(true);
-
-  // Country filter mode state (multi-section view)
+  const [filterTag, setFilterTag] = useState<string>("All");
   const [countrySectionCount, setCountrySectionCount] = useState(0);
   const [countryFilters, setCountryFilters] = useState<
     [string, string, string, string]
@@ -115,9 +99,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     }
   };
 
-  // Applies search, country, and year filters to a single note.
-  // skipGlobalCountryFilter is set to true in multi-section mode so each section
-  // can independently override the country instead of using the global filter.
   const baseFilter = (note: Note, skipGlobalCountryFilter = false) => {
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
@@ -137,25 +118,22 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
       if (note.country !== filterCountry) return false;
     }
 
+    if (filterTag !== "All" && !note.tags.includes(filterTag)) return false;
+
     return true;
   };
 
-  // Sort function
-  const sortNotes = (notesToSort: Note[]) => {
-    return [...notesToSort].sort((a, b) => {
-      if (sortOrder === "newest") {
+  const sortNotes = (notesToSort: Note[]) =>
+    [...notesToSort].sort((a, b) => {
+      if (sortOrder === "newest")
         return b.createdAt.getTime() - a.createdAt.getTime();
-      } else if (sortOrder === "oldest") {
+      if (sortOrder === "oldest")
         return a.createdAt.getTime() - b.createdAt.getTime();
-      }
       return 0;
     });
-  };
 
   const filteredNotes = sortNotes(notes.filter((note) => baseFilter(note)));
 
-  // Returns sorted, filtered notes for a specific country section column.
-  // Passes skipGlobalCountryFilter=true so the global country dropdown is ignored.
   const getNotesForCountry = (country: string) => {
     if (!country) return [];
     return sortNotes(
@@ -165,24 +143,18 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     );
   };
 
-  // Pagination
-  const totalPages = Math.ceil(filteredNotes.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedNotes = filteredNotes.slice(startIndex, endIndex);
-
   const handleResetFilters = () => {
     setFilterCountry("All");
     setSortOrder("newest");
+    setFilterTag("All");
     setCountrySectionCount(0);
     setCountryFilters(["", "", "", ""]);
-    setCurrentPage(1);
   };
 
-  // Show the reset button only when any filter differs from its default value.
   const showResetButton =
     filterCountry !== "All" ||
     sortOrder !== "newest" ||
+    filterTag !== "All" ||
     countrySectionCount > 0;
 
   return (
@@ -197,15 +169,12 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
       <Navbar
         onAddNote={() => setAddDialogOpen(true)}
         onNavigateBack={() => navigate("/")}
-        showSearch
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
       />
 
       <Container
         maxWidth="xl"
         sx={{
-          marginTop: "20px",
+          paddingTop: "20px",
           flex: 1,
           overflow: "hidden",
           display: "flex",
@@ -217,7 +186,9 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           sx={{
             padding: "20px",
             borderRadius: 2,
-            boxShadow: 3,
+            border: "2px solid black",
+            boxShadow:
+              "0 -6px 24px rgba(0,0,0,0.15), 0 12px 40px rgba(0,0,0,0.28), 0 4px 12px rgba(0,0,0,0.18)",
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
@@ -229,178 +200,153 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           </Typography>
 
           <FilterControls
-            filtersVisible={filtersVisible}
-            setFiltersVisible={setFiltersVisible}
             filterCountry={filterCountry}
             setFilterCountry={setFilterCountry}
             countrySectionCount={countrySectionCount}
             setCountrySectionCount={setCountrySectionCount}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            totalPages={totalPages}
-            totalItems={filteredNotes.length}
-            startIndex={startIndex}
-            endIndex={endIndex}
+            filterTag={filterTag}
+            setFilterTag={setFilterTag}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
             onResetFilters={handleResetFilters}
             showResetButton={showResetButton}
           />
 
-          {/* Notes container — renders either the single paginated list or the multi-section grid */}
-          <Box sx={{ flex: 1, overflowX: "hidden" }}>
-            {/* Single-list mode: paginated, uses global filters */}
-            {countrySectionCount === 0 && (
-              <List dense>
-                {paginatedNotes.map((note) => {
-                  // Look up the note's position in the original array so that
-                  // edit/delete operations target the correct index.
-                  const actualIndex = notes.findIndex((n) => n === note);
-                  return (
-                    <NoteCard
-                      key={actualIndex}
-                      note={note}
-                      onEdit={() => handleEditNote(note, actualIndex)}
-                      onDelete={() => handleDeleteNote(actualIndex)}
-                    />
-                  );
-                })}
-                {paginatedNotes.length === 0 && (
-                  <Box
-                    sx={{
-                      textAlign: "center",
-                      padding: "40px",
-                      color: "text.secondary",
-                    }}
-                  >
-                    <Typography variant="h6" gutterBottom>
-                      No notes found
-                    </Typography>
-                    <Typography variant="body2">
-                      {notes.length === 0
-                        ? "Use the Add Note button to get started!"
-                        : "Try adjusting your filters"}
-                    </Typography>
-                  </Box>
-                )}
-              </List>
-            )}
-
-            {/* Multi-section mode: side-by-side columns, each with its own country picker */}
-            {countrySectionCount > 0 && (
+          {/* Single-list mode */}
+          {countrySectionCount === 0 &&
+            (filteredNotes.length === 0 ? (
               <Box
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
-                  gap: 2,
+                  textAlign: "center",
+                  padding: "40px",
+                  color: "text.secondary",
                 }}
               >
-                {countryFilters
-                  .slice(0, countrySectionCount)
-                  .map((country, sectionIndex) => {
-                    const sectionNotes = getNotesForCountry(country);
-                    return (
+                <Typography variant="h6" gutterBottom>
+                  No notes found
+                </Typography>
+                <Typography variant="body2">
+                  {notes.length === 0
+                    ? "Use the Add Note button to get started!"
+                    : "Try adjusting your filters"}
+                </Typography>
+              </Box>
+            ) : (
+              <NotesTable
+                notes={filteredNotes}
+                allNotes={notes}
+                onEdit={handleEditNote}
+                onDelete={handleDeleteNote}
+                sx={{ flex: 1, minHeight: 0 }}
+              />
+            ))}
+
+          {/* Multi-section mode */}
+          {countrySectionCount > 0 && (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
+                gap: 2,
+                flex: 1,
+                minHeight: 0,
+              }}
+            >
+              {countryFilters
+                .slice(0, countrySectionCount)
+                .map((country, sectionIndex) => {
+                  const sectionNotes = getNotesForCountry(country);
+                  return (
+                    <Box
+                      key={sectionIndex}
+                      sx={{
+                        border: "2px solid black",
+                        borderRadius: 2,
+                        p: 2,
+                        backgroundColor: "#f9f9f9",
+                        display: "flex",
+                        flexDirection: "column",
+                        overflow: "hidden",
+                      }}
+                    >
                       <Box
-                        key={sectionIndex}
                         sx={{
-                          border: "2px solid black",
-                          borderRadius: 2,
-                          p: 2,
-                          backgroundColor: "#f9f9f9",
-                          minHeight: "300px",
-                          maxHeight: "500px",
-                          display: "flex",
-                          flexDirection: "column",
+                          mb: 2,
+                          pb: 1,
+                          borderBottom: "1px solid #ddd",
+                          flexShrink: 0,
                         }}
                       >
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            mb: 2,
-                            pb: 1,
-                            borderBottom: "1px solid #ddd",
-                            flexShrink: 0,
+                        <Autocomplete
+                          options={COUNTRIES}
+                          value={country || null}
+                          onChange={(_, newValue) => {
+                            const newFilters = [...countryFilters] as [
+                              string,
+                              string,
+                              string,
+                              string,
+                            ];
+                            newFilters[sectionIndex] = newValue || "";
+                            setCountryFilters(newFilters);
                           }}
-                        >
-                          <Autocomplete
-                            options={COUNTRIES}
-                            value={country || null}
-                            onChange={(_, newValue) => {
-                              const newFilters = [...countryFilters] as [
-                                string,
-                                string,
-                                string,
-                                string,
-                              ];
-                              newFilters[sectionIndex] = newValue || "";
-                              setCountryFilters(newFilters);
-                            }}
-                            renderInput={(params) => (
-                              <TextField
-                                {...params}
-                                label={
-                                  sectionNotes.length > 0
-                                    ? `Select a country (${sectionNotes.length})`
-                                    : "Select a country"
-                                }
-                                size="small"
-                                sx={{
-                                  "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "black",
-                                    borderWidth: "1px",
-                                  },
-                                }}
-                              />
-                            )}
-                            size="small"
-                            sx={{ width: 200 }}
-                          />
-                        </Box>
-                        <Box sx={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
-                          {!country && (
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{ textAlign: "center", mt: 4 }}
-                            >
-                              No notes available
-                            </Typography>
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={
+                                sectionNotes.length > 0
+                                  ? `Select a country (${sectionNotes.length})`
+                                  : "Select a country"
+                              }
+                              size="small"
+                              sx={{
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                  borderColor: "black",
+                                  borderWidth: "1px",
+                                },
+                              }}
+                            />
                           )}
-                          {country && sectionNotes.length === 0 && (
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{ textAlign: "center", mt: 4 }}
-                            >
-                              No notes for {country}
-                            </Typography>
-                          )}
-                          {sectionNotes.map((note) => {
-                            // Same reference-equality lookup as in single-list mode.
-                            const actualIndex = notes.findIndex(
-                              (n) => n === note,
-                            );
-                            return (
-                              <NoteCard
-                                key={actualIndex}
-                                note={note}
-                                onEdit={() => handleEditNote(note, actualIndex)}
-                                onDelete={() => handleDeleteNote(actualIndex)}
-                                compact
-                              />
-                            );
-                          })}
-                        </Box>
+                          size="small"
+                          sx={{ width: 200 }}
+                        />
                       </Box>
-                    );
-                  })}
-              </Box>
-            )}
-          </Box>
+
+                      {!country && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ textAlign: "center", mt: 4 }}
+                        >
+                          No notes available
+                        </Typography>
+                      )}
+                      {country && sectionNotes.length === 0 && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ textAlign: "center", mt: 4 }}
+                        >
+                          No notes for {country}
+                        </Typography>
+                      )}
+                      {country && sectionNotes.length > 0 && (
+                        <NotesTable
+                          notes={sectionNotes}
+                          allNotes={notes}
+                          showCountry={false}
+                          onEdit={handleEditNote}
+                          onDelete={handleDeleteNote}
+                          sx={{ flex: 1, minHeight: 0 }}
+                        />
+                      )}
+                    </Box>
+                  );
+                })}
+            </Box>
+          )}
         </Paper>
       </Container>
 
@@ -410,7 +356,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         onSave={handleAddNote}
         mode="add"
       />
-
       <NoteDialog
         open={editDialogOpen}
         onClose={() => {
@@ -422,7 +367,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         note={editingNote}
         mode="edit"
       />
-
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onClose={() => {
@@ -431,7 +375,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         }}
         onConfirm={confirmDeleteNote}
       />
-
       <SuccessSnackbar
         open={successOpen}
         message={successMessage}

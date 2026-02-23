@@ -98,7 +98,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       maxWidth="md"
       fullWidth
       slotProps={{
-        paper: { sx: { overflow: "hidden" } },
+        paper: { sx: { maxHeight: "90vh" } },
       }}
     >
       <DialogTitle>
@@ -117,7 +117,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           </IconButton>
         </Box>
       </DialogTitle>
-      <DialogContent sx={{ overflow: "visible" }}>
+      <DialogContent sx={{ overflowY: "auto" }}>
         <TextField
           label="Title"
           variant="outlined"
@@ -142,6 +142,8 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           value={text}
           onChange={(e) => setText(e.target.value)}
           required
+          error={!text}
+          helperText={!text ? "Content is required" : " "}
           sx={{
             marginBottom: 2,
             "& .MuiOutlinedInput-root": {
@@ -164,7 +166,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
               variant="outlined"
               required
               error={!country}
-              helperText={!country ? "Country is required" : ""}
+              helperText={!country ? "Country is required" : " "}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   backgroundColor: "#fafafa",
