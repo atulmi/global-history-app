@@ -9,7 +9,8 @@ import {
   Divider,
   TextField,
 } from "@mui/material";
-import { TAG_CATEGORIES } from "../data/countries";
+import Autocomplete from "@mui/material/Autocomplete";
+import { TAG_CATEGORIES, COUNTRIES } from "../data/countries";
 
 /**
  * Filter bar for the All Notes page.
@@ -17,15 +18,18 @@ import { TAG_CATEGORIES } from "../data/countries";
  * The Country dropdown doubles as a view-mode switcher:
  * - Selecting "All Countries" or a plain country value keeps the single-list
  *   view (countrySectionCount = 0).
- * - Selecting a "sections_N" option switches to the multi-column grid view
- *   (countrySectionCount = N) and clears the global country filter.
+ * - Selecting "sections_1" or "sections_2" switches to a split-column view
+ *   (countrySectionCount = 1 or 2) and clears the global country filter.
+ *
+ * When split mode is active, an Autocomplete picker for each column appears
+ * inline to the right of the display-mode dropdown.
  *
  * The search field sits after Sort By, and Reset Filters is pushed to the far right.
  */
 type FilterControlsProps = {
   filterCountry: string;
   setFilterCountry: (country: string) => void;
-  // 0 = single-list mode; 1-4 = number of side-by-side country columns
+  // 0 = single-list mode; 1-2 = number of side-by-side country columns
   countrySectionCount: number;
   setCountrySectionCount: (count: number) => void;
   sortOrder: string;
@@ -36,6 +40,9 @@ type FilterControlsProps = {
   onSearchChange: (term: string) => void;
   onResetFilters: () => void;
   showResetButton: boolean;
+  // Country values for the split-view columns
+  countryFilters: [string, string];
+  setCountryFilters: (filters: [string, string]) => void;
 };
 
 const FilterControls: React.FC<FilterControlsProps> = ({
@@ -51,6 +58,8 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   onSearchChange,
   onResetFilters,
   showResetButton,
+  countryFilters,
+  setCountryFilters,
 }) => {
   // Shared sx snippet that gives all dropdowns a consistent black 1px border.
   const selectStyle = {
@@ -74,7 +83,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           <InputLabel>Country</InputLabel>
           <Select
             // Reflect the active mode back into the select:
-            // multi-section mode uses "sections_N" synthetic values,
+            // split mode uses "sections_N" synthetic values,
             // single-list mode uses the actual country string (or "All").
             value={
               countrySectionCount > 0
@@ -85,7 +94,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             onChange={(e) => {
               const value = e.target.value;
               if (value.startsWith("sections_")) {
-                // Switch to multi-column grid; clear the global country filter.
+                // Switch to split-column view; clear the global country filter.
                 setCountrySectionCount(parseInt(value.split("_")[1]));
                 setFilterCountry("All");
               } else {
@@ -99,10 +108,38 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             <Divider />
             <MenuItem value="sections_1">Display notes for 1 country</MenuItem>
             <MenuItem value="sections_2">Display notes for 2 countries</MenuItem>
-            <MenuItem value="sections_3">Display notes for 3 countries</MenuItem>
-            <MenuItem value="sections_4">Display notes for 4 countries</MenuItem>
           </Select>
         </FormControl>
+
+        {/* Inline country pickers — shown only when split mode is active */}
+        {countrySectionCount > 0 &&
+          Array.from({ length: countrySectionCount }).map((_, i) => (
+            <Autocomplete
+              key={i}
+              options={COUNTRIES}
+              value={countryFilters[i] || null}
+              onChange={(_, newValue) => {
+                const updated = [...countryFilters] as [string, string];
+                updated[i] = newValue || "";
+                setCountryFilters(updated);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={`Country ${i + 1}`}
+                  size="small"
+                  sx={{
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "black",
+                      borderWidth: "1px",
+                    },
+                  }}
+                />
+              )}
+              size="small"
+              sx={{ minWidth: 180 }}
+            />
+          ))}
 
         <FormControl size="small" sx={{ minWidth: 150, ...selectStyle }}>
           <InputLabel>Sort By</InputLabel>

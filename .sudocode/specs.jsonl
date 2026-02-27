@@ -1,0 +1,1 @@
+{"id":"SPEC-001","title":"Cypress E2E Testing, GitHub CI/CD + Node.js/MongoDB Backend","status":"draft","priority":"high","tags":["testing","cypress","ci-cd","github-actions","backend","nodejs","mongodb","rest-api"],"file":"specs/SPEC-001-cypress-e2e-cicd.md","created":"2026-02-25"}

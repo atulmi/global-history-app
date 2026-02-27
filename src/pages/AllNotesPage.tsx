@@ -1,22 +1,21 @@
+import { Box, Container, Typography } from "@mui/material";
 import React, { useState } from "react";
-import { Container, Paper, Typography, Box, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import Autocomplete from "@mui/material/Autocomplete";
-import { COUNTRIES } from "../data/countries";
-import { type Note } from "../types/Note";
+import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
+import FilterControls from "../components/FilterControls";
 import Navbar from "../components/Navbar";
 import NoteDialog from "../components/NoteDialog";
-import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
-import SuccessSnackbar from "../components/SuccessSnackbar";
-import FilterControls from "../components/FilterControls";
 import NotesTable from "../components/NotesTable";
+import SuccessSnackbar from "../components/SuccessSnackbar";
+import { type Note } from "../types/Note";
 
 /**
  * Displays all notes with filtering and sorting.
  *
  * Supports two view modes:
  * - Single list: all filtered notes in a single table.
- * - Multi-section: up to 4 side-by-side tables, each filtered by a chosen country.
+ * - Multi-section: up to 2 side-by-side tables, each filtered by a chosen country.
+ *   The country pickers live in the filter bar; there are no per-column containers.
  */
 
 type AllNotesPageProps = {
@@ -58,9 +57,10 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const [sortOrder, setSortOrder] = useState<string>("newest");
   const [filterTag, setFilterTag] = useState<string>("All");
   const [countrySectionCount, setCountrySectionCount] = useState(0);
-  const [countryFilters, setCountryFilters] = useState<
-    [string, string, string, string]
-  >(["", "", "", ""]);
+  const [countryFilters, setCountryFilters] = useState<[string, string]>([
+    "",
+    "",
+  ]);
 
   const handleAddNote = (note: Note) => {
     addNote(note);
@@ -148,7 +148,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     setSortOrder("newest");
     setFilterTag("All");
     setCountrySectionCount(0);
-    setCountryFilters(["", "", "", ""]);
+    setCountryFilters(["", ""]);
   };
 
   const showResetButton =
@@ -199,6 +199,8 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           onSearchChange={setSearchTerm}
           onResetFilters={handleResetFilters}
           showResetButton={showResetButton}
+          countryFilters={countryFilters}
+          setCountryFilters={setCountryFilters}
         />
 
         {/* Single-list mode */}
@@ -235,7 +237,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             />
           ))}
 
-        {/* Multi-section mode */}
+        {/* Multi-section mode — tables sit directly in the grid, no extra containers */}
         {countrySectionCount > 0 && (
           <Box
             sx={{
@@ -246,97 +248,44 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
               minHeight: 0,
             }}
           >
-            {countryFilters
-              .slice(0, countrySectionCount)
-              .map((country, sectionIndex) => {
-                const sectionNotes = getNotesForCountry(country);
-                return (
-                  <Box
-                    key={sectionIndex}
-                    sx={{
-                      border: "2px solid black",
-                      borderRadius: 2,
-                      p: 2,
-                      backgroundColor: "#f9f9f9",
-                      display: "flex",
-                      flexDirection: "column",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        mb: 2,
-                        pb: 1,
-                        borderBottom: "1px solid #ddd",
-                        flexShrink: 0,
-                      }}
+            {countryFilters.slice(0, countrySectionCount).map((country, i) => {
+              const sectionNotes = getNotesForCountry(country);
+              return (
+                <Box
+                  key={i}
+                  sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
+                >
+                  {!country && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: "center", mt: 4 }}
                     >
-                      <Autocomplete
-                        options={COUNTRIES}
-                        value={country || null}
-                        onChange={(_, newValue) => {
-                          const newFilters = [...countryFilters] as [
-                            string,
-                            string,
-                            string,
-                            string,
-                          ];
-                          newFilters[sectionIndex] = newValue || "";
-                          setCountryFilters(newFilters);
-                        }}
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label={
-                              sectionNotes.length > 0
-                                ? `Select a country (${sectionNotes.length})`
-                                : "Select a country"
-                            }
-                            size="small"
-                            sx={{
-                              "& .MuiOutlinedInput-notchedOutline": {
-                                borderColor: "black",
-                                borderWidth: "1px",
-                              },
-                            }}
-                          />
-                        )}
-                        size="small"
-                        sx={{ width: 200 }}
-                      />
-                    </Box>
-
-                    {!country && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ textAlign: "center", mt: 4 }}
-                      >
-                        No notes available
-                      </Typography>
-                    )}
-                    {country && sectionNotes.length === 0 && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ textAlign: "center", mt: 4 }}
-                      >
-                        No notes for {country}
-                      </Typography>
-                    )}
-                    {country && sectionNotes.length > 0 && (
-                      <NotesTable
-                        notes={sectionNotes}
-                        allNotes={notes}
-                        showCountry={false}
-                        onEdit={handleEditNote}
-                        onDelete={handleDeleteNote}
-                        sx={{ flex: 1, minHeight: 0 }}
-                      />
-                    )}
-                  </Box>
-                );
-              })}
+                      Select a country above
+                    </Typography>
+                  )}
+                  {country && sectionNotes.length === 0 && (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textAlign: "center", mt: 4 }}
+                    >
+                      No notes for {country}
+                    </Typography>
+                  )}
+                  {country && sectionNotes.length > 0 && (
+                    <NotesTable
+                      notes={sectionNotes}
+                      allNotes={notes}
+                      showCountry={false}
+                      onEdit={handleEditNote}
+                      onDelete={handleDeleteNote}
+                      sx={{ flex: 1, minHeight: 0 }}
+                    />
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         )}
       </Container>
