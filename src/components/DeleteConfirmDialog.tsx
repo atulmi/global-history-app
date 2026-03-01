@@ -20,7 +20,13 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   onConfirm,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="xs"
+      fullWidth
+      data-testid="delete-confirm-dialog"
+    >
       <DialogTitle>
         <Typography variant="h6" fontWeight={700}>
           Delete Note?
@@ -34,7 +40,12 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={onConfirm} variant="contained" color="error">
+        <Button
+          onClick={onConfirm}
+          variant="contained"
+          color="error"
+          data-testid="btn-delete-confirm"
+        >
           Delete
         </Button>
       </DialogActions>

@@ -37,7 +37,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick, loading }) => {
   };
 
   return (
-    <Box sx={{ position: "relative", width: "100vw", height: "100vh" }}>
+    <Box data-testid="world-map" sx={{ position: "relative", width: "100vw", height: "100vh" }}>
       <ComposableMap
         projection="geoNaturalEarth1"
         projectionConfig={{

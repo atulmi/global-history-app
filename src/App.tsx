@@ -9,19 +9,16 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  const addNote = (note: Note) => {
-    setNotes([note, ...notes]);
+  const addNote = (note: Omit<Note, "id">) => {
+    setNotes([{ id: crypto.randomUUID(), ...note }, ...notes]);
   };
 
-  const updateNote = (index: number, note: Note) => {
-    const newNotes = [...notes];
-    newNotes[index] = note;
-    setNotes(newNotes);
+  const updateNote = (id: string, note: Note) => {
+    setNotes(notes.map((n) => (n.id === id ? note : n)));
   };
 
-  const deleteNote = (index: number) => {
-    const newNotes = notes.filter((_, i) => i !== index);
-    setNotes(newNotes);
+  const deleteNote = (id: string) => {
+    setNotes(notes.filter((n) => n.id !== id));
   };
 
   const handleOpenAddDialog = () => {

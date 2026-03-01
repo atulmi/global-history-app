@@ -20,9 +20,9 @@ import { type Note } from "../types/Note";
 
 type AllNotesPageProps = {
   notes: Note[];
-  addNote: (note: Note) => void;
-  updateNote: (index: number, note: Note) => void;
-  deleteNote: (index: number) => void;
+  addNote: (note: Omit<Note, "id">) => void;
+  updateNote: (id: string, note: Note) => void;
+  deleteNote: (id: string) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   addDialogOpen: boolean;
@@ -42,13 +42,11 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const navigate = useNavigate();
 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingNoteIndex, setDeletingNoteIndex] = useState<number | null>(
-    null,
-  );
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -69,33 +67,33 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     setSuccessOpen(true);
   };
 
-  const handleEditNote = (note: Note, index: number) => {
+  const handleEditNote = (note: Note, id: string) => {
     setEditingNote(note);
-    setEditingIndex(index);
+    setEditingNoteId(id);
     setEditDialogOpen(true);
   };
 
   const handleSaveEdit = (note: Note) => {
-    if (editingIndex !== null) {
-      updateNote(editingIndex, note);
+    if (editingNoteId !== null) {
+      updateNote(editingNoteId, note);
       setEditDialogOpen(false);
       setEditingNote(null);
-      setEditingIndex(null);
+      setEditingNoteId(null);
       setSuccessMessage("Note successfully updated!");
       setSuccessOpen(true);
     }
   };
 
-  const handleDeleteNote = (index: number) => {
-    setDeletingNoteIndex(index);
+  const handleDeleteNote = (id: string) => {
+    setDeletingNoteId(id);
     setDeleteDialogOpen(true);
   };
 
   const confirmDeleteNote = () => {
-    if (deletingNoteIndex !== null) {
-      deleteNote(deletingNoteIndex);
+    if (deletingNoteId !== null) {
+      deleteNote(deletingNoteId);
       setDeleteDialogOpen(false);
-      setDeletingNoteIndex(null);
+      setDeletingNoteId(null);
     }
   };
 
@@ -230,7 +228,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           ) : (
             <NotesTable
               notes={filteredNotes}
-              allNotes={notes}
               onEdit={handleEditNote}
               onDelete={handleDeleteNote}
               sx={{ flex: 1, minHeight: 0 }}
@@ -276,7 +273,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                   {country && sectionNotes.length > 0 && (
                     <NotesTable
                       notes={sectionNotes}
-                      allNotes={notes}
                       showCountry={false}
                       onEdit={handleEditNote}
                       onDelete={handleDeleteNote}
@@ -301,7 +297,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         onClose={() => {
           setEditDialogOpen(false);
           setEditingNote(null);
-          setEditingIndex(null);
+          setEditingNoteId(null);
         }}
         onSave={handleSaveEdit}
         note={editingNote}
@@ -311,7 +307,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         open={deleteDialogOpen}
         onClose={() => {
           setDeleteDialogOpen(false);
-          setDeletingNoteIndex(null);
+          setDeletingNoteId(null);
         }}
         onConfirm={confirmDeleteNote}
       />

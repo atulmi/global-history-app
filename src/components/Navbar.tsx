@@ -27,6 +27,7 @@ const Navbar: React.FC<NavbarProps> = ({
   return (
     <AppBar
       position="static"
+      data-testid="navbar"
       sx={{
         background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         boxShadow: "none",
@@ -85,6 +86,7 @@ const Navbar: React.FC<NavbarProps> = ({
         {onNavigateToAllNotes && (
           <Button
             variant="contained"
+            data-testid="btn-all-notes"
             startIcon={<ViewListIcon />}
             onClick={onNavigateToAllNotes}
             sx={{
@@ -102,6 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
         <Button
           variant="contained"
+          data-testid="btn-add-note"
           startIcon={<AddIcon />}
           onClick={onAddNote}
           sx={{

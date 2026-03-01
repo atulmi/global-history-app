@@ -88,6 +88,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
             </IconButton>
             <IconButton
               size="small"
+              data-testid="btn-delete-note"
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete();
@@ -186,6 +187,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
           </IconButton>
           <IconButton
             size="small"
+            data-testid="btn-delete-note"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();

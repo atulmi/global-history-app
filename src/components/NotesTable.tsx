@@ -45,16 +45,10 @@ import { type Note } from "../types/Note";
 type NotesTableProps = {
   /** The already-filtered and sorted notes to display. */
   notes: Note[];
-  /**
-   * The full, unfiltered notes array from the parent.
-   * Used to derive each note's stable index so edit/delete callbacks
-   * reference the correct entry in the source-of-truth array.
-   */
-  allNotes: Note[];
   /** When false, the Country column is hidden (used in per-country section mode). */
   showCountry?: boolean;
-  onEdit: (note: Note, index: number) => void;
-  onDelete: (index: number) => void;
+  onEdit: (note: Note, id: string) => void;
+  onDelete: (id: string) => void;
   /** Passed to the outer Box so callers can control sizing (e.g. flex: 1). */
   sx?: SxProps<Theme>;
 };
@@ -88,7 +82,6 @@ const rowSx = {
 
 const NotesTable: React.FC<NotesTableProps> = ({
   notes,
-  allNotes,
   showCountry = true,
   onEdit,
   onDelete,
@@ -140,6 +133,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
     // bottom while only the TableContainer scrolls above it.
     <Box sx={{ display: "flex", flexDirection: "column", ...sx }}>
       <TableContainer
+        data-testid="notes-table"
         sx={{
           flex: 1,
           overflow: "auto",
@@ -188,74 +182,72 @@ const NotesTable: React.FC<NotesTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {pagedNotes.map((note) => {
-              // Resolve the note's position in the original array so
-              // edit/delete callbacks target the right index.
-              const originalIndex = allNotes.indexOf(note);
-              return (
-                <TableRow
-                  key={originalIndex}
-                  onClick={() => onEdit(note, originalIndex)}
-                  sx={rowSx}
-                >
-                  <TableCell>{note.title || "(untitled)"}</TableCell>
-                  {showCountry && <TableCell>{note.country || ""}</TableCell>}
-                  <TableCell>{note.tags.join(", ")}</TableCell>
-                  <Tooltip
-                    title={
-                      <Box
-                        sx={{
-                          maxHeight: 300,
-                          overflowY: "auto",
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {note.text}
-                      </Box>
-                    }
-                    arrow
-                    slotProps={{
-                      tooltip: { sx: { maxWidth: 400, p: 1.5 } },
-                    }}
-                  >
-                    <TableCell
+            {pagedNotes.map((note) => (
+              <TableRow
+                key={note.id}
+                data-testid="notes-table-row"
+                data-id={note.id}
+                onClick={() => onEdit(note, note.id)}
+                sx={rowSx}
+              >
+                <TableCell>{note.title || "(untitled)"}</TableCell>
+                {showCountry && <TableCell>{note.country || ""}</TableCell>}
+                <TableCell>{note.tags.join(", ")}</TableCell>
+                <Tooltip
+                  title={
+                    <Box
                       sx={{
-                        maxWidth: "100px",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
+                        maxHeight: 300,
+                        overflowY: "auto",
+                        whiteSpace: "pre-wrap",
                       }}
                     >
                       {note.text}
-                    </TableCell>
-                  </Tooltip>
-                  <TableCell>{note.createdAt.toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    <Box sx={{ display: "flex", gap: 0.5 }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => onEdit(note, originalIndex)}
-                        title="Edit"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      {/* stopPropagation prevents the row's onClick (edit) from
-                          also firing when the delete button is clicked. */}
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(originalIndex);
-                        }}
-                        title="Delete"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
                     </Box>
+                  }
+                  arrow
+                  slotProps={{
+                    tooltip: { sx: { maxWidth: 400, p: 1.5 } },
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      maxWidth: "100px",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {note.text}
                   </TableCell>
-                </TableRow>
-              );
-            })}
+                </Tooltip>
+                <TableCell>{note.createdAt.toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: "flex", gap: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => onEdit(note, note.id)}
+                      title="Edit"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    {/* stopPropagation prevents the row's onClick (edit) from
+                        also firing when the delete button is clicked. */}
+                    <IconButton
+                      size="small"
+                      data-testid="btn-delete-note"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(note.id);
+                      }}
+                      title="Delete"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

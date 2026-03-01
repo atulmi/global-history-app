@@ -18,6 +18,7 @@ const SuccessSnackbar: React.FC<SuccessSnackbarProps> = ({
       autoHideDuration={3000}
       onClose={onClose}
       anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      data-testid="success-snackbar"
     >
       <Alert
         onClose={onClose}

@@ -50,6 +50,7 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
       anchor="right"
       open={open}
       onClose={onClose}
+      data-testid="wikipedia-drawer"
       sx={{
         "& .MuiDrawer-paper": {
           width: { xs: "100%", sm: "500px" },
@@ -62,10 +63,15 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
       }}
     >
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-        <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          data-testid="drawer-article-title"
+          sx={{ mb: 2 }}
+        >
           {article ? article.title : `Loading article on ${selectedCountry}...`}
         </Typography>
-        <IconButton onClick={onClose}>
+        <IconButton onClick={onClose} data-testid="btn-drawer-close">
           <CloseIcon />
         </IconButton>
       </Box>
@@ -111,6 +117,7 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
                 onClick={onReload}
                 color="warning"
                 size="small"
+                data-testid="btn-drawer-reload"
                 sx={{
                   cursor: "pointer",
                   "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
@@ -124,6 +131,7 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
             variant="outlined"
             value={articleText}
             onChange={(e) => onArticleTextChange(e.target.value)}
+            data-testid="drawer-article-text"
             sx={{
               marginBottom: 2,
               flexGrow: 1,
@@ -158,6 +166,7 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
             onClick={onSave}
             fullWidth
             size="large"
+            data-testid="btn-drawer-save"
           >
             Save as Note
           </Button>

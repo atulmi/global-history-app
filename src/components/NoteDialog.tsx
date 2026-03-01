@@ -64,6 +64,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
     if (text && country) {
       const now = new Date();
       const savedNote: Note = {
+        id: note?.id ?? "",
         text,
         title: title || undefined,
         tags,
@@ -97,6 +98,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       }}
       maxWidth="md"
       fullWidth
+      data-testid="note-dialog"
       slotProps={{
         paper: { sx: { maxHeight: "90vh" } },
       }}
@@ -124,6 +126,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           fullWidth
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          data-testid="note-dialog-title"
           sx={{
             marginTop: 2,
             marginBottom: 2,
@@ -141,6 +144,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           rows={10}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          data-testid="note-dialog-content"
           required
           error={!text}
           helperText={!text ? "Content is required" : " "}
@@ -159,6 +163,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           options={COUNTRIES}
           value={country}
           onChange={(_, newValue) => setCountry(newValue)}
+          data-testid="note-dialog-country"
           renderInput={(params) => (
             <TextField
               {...params}
@@ -180,12 +185,13 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
         <TagsSelect value={tags} onChange={setTags} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
+        <Button onClick={handleClose} data-testid="btn-note-dialog-cancel">Cancel</Button>
         <Button
           onClick={handleSave}
           variant="contained"
           color="primary"
           disabled={!text || !country}
+          data-testid="btn-note-dialog-save"
         >
           {mode === "add" ? "Add Note" : "Save Changes"}
         </Button>

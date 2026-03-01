@@ -70,7 +70,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   };
 
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box data-testid="filter-controls" sx={{ mb: 4 }}>
       <Box
         sx={{
           display: "flex",
@@ -79,7 +79,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           alignItems: "center",
         }}
       >
-        <FormControl size="small" sx={{ minWidth: 180, ...selectStyle }}>
+        <FormControl data-testid="filter-country" size="small" sx={{ minWidth: 180, ...selectStyle }}>
           <InputLabel>Country</InputLabel>
           <Select
             // Reflect the active mode back into the select:
@@ -141,7 +141,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             />
           ))}
 
-        <FormControl size="small" sx={{ minWidth: 150, ...selectStyle }}>
+        <FormControl data-testid="filter-sort" size="small" sx={{ minWidth: 150, ...selectStyle }}>
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortOrder}
@@ -153,7 +153,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ minWidth: 150, ...selectStyle }}>
+        <FormControl data-testid="filter-tag" size="small" sx={{ minWidth: 150, ...selectStyle }}>
           <InputLabel>Tag</InputLabel>
           <Select
             value={filterTag}
@@ -176,6 +176,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           size="small"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
+          data-testid="filter-search"
           sx={{
             minWidth: 220,
             backgroundColor: "white",
@@ -190,6 +191,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             variant="contained"
             size="small"
             onClick={onResetFilters}
+            data-testid="btn-reset-filters"
             sx={{ marginLeft: "auto" }}
           >
             Reset Filters

@@ -8,8 +8,8 @@ type DisplayExploreNoteMode = "recent" | "random";
 type ExploreNotesSidebarProps = {
   notes: Note[];
   totalNotes: number;
-  onEditNote: (note: Note, index: number) => void;
-  onDeleteNote: (index: number) => void;
+  onEditNote: (note: Note, id: string) => void;
+  onDeleteNote: (id: string) => void;
   onViewAll: () => void;
 };
 
@@ -25,21 +25,17 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
   const [displayMode, setDisplayMode] =
     useState<DisplayExploreNoteMode>("recent");
 
-  // Build a list of {note, originalIndex} pairs so edit/delete callbacks
-  // always receive the correct index into the full notes array.
   const displayedEntries = useMemo(() => {
     if (displayMode === "recent") {
-      return notes.slice(0, 5).map((note, i) => ({ note, originalIndex: i }));
+      return notes.slice(0, 5);
     }
     // Random mode: shuffle a copy and take the first 5.
-    const shuffled = notes
-      .map((note, i) => ({ note, originalIndex: i }))
-      .sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 5);
+    return [...notes].sort(() => Math.random() - 0.5).slice(0, 5);
   }, [notes, displayMode]);
 
   return (
     <Paper
+      data-testid="sidebar"
       sx={{
         padding: "20px",
         borderRadius: 0,
@@ -107,14 +103,15 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
 
       <Box sx={{ flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
         <List dense>
-          {displayedEntries.map(({ note, originalIndex }) => (
-            <NoteCard
-              key={originalIndex}
-              note={note}
-              onEdit={() => onEditNote(note, originalIndex)}
-              onDelete={() => onDeleteNote(originalIndex)}
-              compact
-            />
+          {displayedEntries.map((note) => (
+            <Box key={note.id} data-testid="sidebar-note-card">
+              <NoteCard
+                note={note}
+                onEdit={() => onEditNote(note, note.id)}
+                onDelete={() => onDeleteNote(note.id)}
+                compact
+              />
+            </Box>
           ))}
           {notes.length === 0 && (
             <Box
