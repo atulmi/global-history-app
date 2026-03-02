@@ -1,0 +1,12 @@
+{
+  "query": {
+    "pages": {
+      "1234": {
+        "pageid": 1234,
+        "title": "History of Japan",
+        "extract": "Japan has one of the oldest histories of any nation...",
+        "fullurl": "https://en.wikipedia.org/wiki/History_of_Japan"
+      }
+    }
+  }
+}

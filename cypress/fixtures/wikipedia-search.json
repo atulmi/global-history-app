@@ -1,0 +1,8 @@
+{
+  "query": {
+    "search": [
+      { "pageid": 1234, "title": "History of Japan" },
+      { "pageid": 5678, "title": "Meiji Restoration" }
+    ]
+  }
+}
