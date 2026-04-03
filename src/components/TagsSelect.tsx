@@ -22,6 +22,7 @@ const TagsSelect: React.FC<TagsSelectProps> = ({ value, onChange, sx }) => {
   return (
     <FormControl
       fullWidth
+      data-testid="tags-select"
       sx={{
         "& .MuiOutlinedInput-root": {
           backgroundColor: "#fafafa",
