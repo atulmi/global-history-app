@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Grid, Paper, Box, Typography } from "@mui/material";
+import { Grid, Paper, Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import WorldMap from "./components/WorldMap";
 import Navbar from "./components/Navbar";
 import NoteDialog from "./components/NoteDialog";
@@ -16,6 +19,7 @@ import { type Note } from "./types/Note";
 
 type NotesProps = {
   notes: Note[];
+  notesLoading: boolean;
   addNote: (note: Omit<Note, "id">) => void;
   updateNote: (id: string, note: Note) => void;
   deleteNote: (id: string) => void;
@@ -28,6 +32,7 @@ type NotesProps = {
 
 const Notes: React.FC<NotesProps> = ({
   notes,
+  notesLoading,
   addNote,
   updateNote,
   deleteNote,
@@ -37,6 +42,23 @@ const Notes: React.FC<NotesProps> = ({
 }) => {
   const navigate = useNavigate();
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+
+  const DEFAULT_ZOOM = 1;
+  const DEFAULT_CENTER: [number, number] = [0, 0];
+  const [mapZoom, setMapZoom] = useState(DEFAULT_ZOOM);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(DEFAULT_CENTER);
+  const [mapKey, setMapKey] = useState(0);
+
+  const handleMapMoveEnd = ({ coordinates, zoom }: { coordinates: [number, number]; zoom: number }) => {
+    setMapCenter(coordinates);
+    setMapZoom(zoom);
+  };
+
+  const handleResetMap = () => {
+    setMapZoom(DEFAULT_ZOOM);
+    setMapCenter(DEFAULT_CENTER);
+    setMapKey((k) => k + 1);
+  };
 
   // Wikipedia integration state
   const [currentArticle, setCurrentArticle] = useState<WikipediaArticle | null>(
@@ -177,13 +199,24 @@ const Notes: React.FC<NotesProps> = ({
         display: "flex",
         flexDirection: "column",
         margin: 0,
+        position: "relative",
       }}
     >
+      {notesLoading && (
+        <Box sx={{
+          position: "absolute", inset: 0, zIndex: 20,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          backgroundColor: "white", gap: 2,
+        }}>
+          <CircularProgress size={80} thickness={4} />
+          <Typography variant="h5" color="text.secondary">Loading notes...</Typography>
+        </Box>
+      )}
+
       <Navbar
         onAddNote={onOpenAddDialog}
         onNavigateToAllNotes={() => navigate("/all-notes")}
       />
-
       <Box
         sx={{ flexGrow: 1, overflow: "hidden", display: "flex", width: "100%" }}
       >
@@ -217,15 +250,40 @@ const Notes: React.FC<NotesProps> = ({
                 backgroundColor: "white",
               }}
             >
-              <Typography variant="h6" gutterBottom fontWeight={600}>
-                🌍 Explore Global History
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 0.5 }}>
+                <Typography variant="h6" fontWeight={600}>
+                  🌍 Explore Global History
+                </Typography>
+                <Box>
+                  <Tooltip title="Zoom in">
+                    <IconButton size="small" onClick={() => setMapZoom((z) => Math.min(z + 0.5, 8))}>
+                      <ZoomInIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Zoom out">
+                    <IconButton size="small" onClick={() => setMapZoom((z) => Math.max(z - 0.5, 1))}>
+                      <ZoomOutIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Reset view">
+                    <IconButton size="small" onClick={handleResetMap}>
+                      <CenterFocusStrongIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Click any country to discover random Wikipedia articles about
                 that country and its history
               </Typography>
               <Box sx={{ flex: 1, minHeight: 0 }}>
-                <WorldMap onCountryClick={handleCountryClick} />
+                <WorldMap
+                  key={mapKey}
+                  onCountryClick={handleCountryClick}
+                  zoom={mapZoom}
+                  center={mapCenter}
+                  onMoveEnd={handleMapMoveEnd}
+                />
               </Box>
             </Paper>
           </Grid>

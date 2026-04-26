@@ -5,22 +5,28 @@ import {
   Geography,
   ZoomableGroup,
 } from "react-simple-maps";
-import { Box, Typography, CircularProgress, Paper } from "@mui/material";
+import { Box, Typography, Paper } from "@mui/material";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
 type WorldMapProps = {
   onCountryClick: (countryName: string) => void;
-  loading?: boolean;
+  zoom?: number;
+  center?: [number, number];
+  onMoveEnd?: (position: { coordinates: [number, number]; zoom: number }) => void;
 };
 
-const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick, loading }) => {
+const WorldMap: React.FC<WorldMapProps> = ({
+  onCountryClick,
+  zoom = 1,
+  center = [0, 0],
+  onMoveEnd,
+}) => {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const handleCountryClick = (geo: any) => {
-    const countryName = geo.properties.name;
-    onCountryClick(countryName);
+    onCountryClick(geo.properties.name);
   };
 
   const handleMouseEnter = (geo: any, event: React.MouseEvent) => {
@@ -40,12 +46,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick, loading }) => {
     <Box data-testid="world-map" sx={{ position: "relative", width: "100vw", height: "100vh" }}>
       <ComposableMap
         projection="geoNaturalEarth1"
-        projectionConfig={{
-          scale: 100,
-          center: [150, -90],
-        }}
+        projectionConfig={{ scale: 100, center: [150, -90] }}
       >
-        <ZoomableGroup zoom={1.0}>
+        <ZoomableGroup zoom={zoom} center={center} onMoveEnd={onMoveEnd}>
           <Geographies geography={geoUrl}>
             {({ geographies }: { geographies: any[] }) =>
               geographies.map((geo: any) => (
@@ -53,31 +56,13 @@ const WorldMap: React.FC<WorldMapProps> = ({ onCountryClick, loading }) => {
                   key={geo.rsmKey}
                   geography={geo}
                   onClick={() => handleCountryClick(geo)}
-                  onMouseEnter={(event: React.MouseEvent) =>
-                    handleMouseEnter(geo, event)
-                  }
+                  onMouseEnter={(event: React.MouseEvent) => handleMouseEnter(geo, event)}
                   onMouseMove={handleMouseMove}
                   onMouseLeave={handleMouseLeave}
                   style={{
-                    default: {
-                      fill: "#D6D6DA",
-                      outline: "none",
-                      stroke: "#FFFFFF",
-                      strokeWidth: 0.5,
-                    },
-                    hover: {
-                      fill: "#F53",
-                      outline: "none",
-                      stroke: "#FFFFFF",
-                      strokeWidth: 0.5,
-                      cursor: "pointer",
-                    },
-                    pressed: {
-                      fill: "#E42",
-                      outline: "none",
-                      stroke: "#FFFFFF",
-                      strokeWidth: 0.5,
-                    },
+                    default: { fill: "#D6D6DA", outline: "none", stroke: "#FFFFFF", strokeWidth: 0.5 },
+                    hover:   { fill: "#F53",    outline: "none", stroke: "#FFFFFF", strokeWidth: 0.5, cursor: "pointer" },
+                    pressed: { fill: "#E42",    outline: "none", stroke: "#FFFFFF", strokeWidth: 0.5 },
                   }}
                 />
               ))

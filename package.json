@@ -11,7 +11,8 @@
 		"deploy": "npm run build && wrangler pages deploy",
 		"cf-typegen": "wrangler types",
 		"cy:open": "cypress open",
-		"cy:run": "npx wait-on tcp:5173 && cypress run"
+		"cy:run": "npx wait-on tcp:5173 && cypress run",
+		"server": "tsx src/backend/index.ts"
 	},
 	"dependencies": {
 		"@emotion/react": "^11.14.0",
@@ -20,6 +21,7 @@
 		"@mui/material": "^7.2.0",
 		"cors": "^2.8.5",
 		"express": "^5.1.0",
+		"mongoose": "^8.14.1",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"react-router-dom": "^7.13.0",
@@ -37,6 +39,7 @@
 		"eslint-plugin-react-hooks": "^5.2.0",
 		"eslint-plugin-react-refresh": "^0.4.19",
 		"globals": "^16.0.0",
+		"tsx": "^4.19.3",
 		"typescript": "~5.8.3",
 		"typescript-eslint": "^8.30.1",
 		"vite": "^6.3.5",
