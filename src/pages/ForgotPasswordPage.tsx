@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Box, Paper, Typography, TextField, Button, Link, Alert } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { Typography, TextField, Button, Link, Alert, Box } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import AuthLayout from "../components/AuthLayout";
 
 const BG = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
 const API = "http://localhost:3000/api/auth";
 
 const ForgotPasswordPage: React.FC = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -44,42 +44,35 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", p: 2 }}>
-      <Typography variant="h4" fontWeight={700} color="white"
-        sx={{ mb: 3, cursor: "pointer", letterSpacing: "0.5px" }} onClick={() => navigate("/")}>
-        🌍 GlobalHistory
+    <AuthLayout>
+      <Typography variant="h5" fontWeight={700} mb={1}>Reset password</Typography>
+      <Typography variant="body2" color="text.secondary" mb={3}>
+        Enter your email and we'll send you a link to reset your password.
       </Typography>
 
-      <Paper elevation={6} sx={{ width: "100%", maxWidth: 420, borderRadius: 3, p: 4 }}>
-        <Typography variant="h5" fontWeight={700} mb={1}>Reset password</Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          Enter your email and we'll send you a link to reset your password.
-        </Typography>
+      {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
 
-        {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
+      {submitted ? (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          If an account exists for <strong>{email}</strong>, a reset link has been sent.
+        </Alert>
+      ) : (
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <TextField label="Email" type="email" fullWidth margin="normal" sx={{ mb: 3 }}
+            value={email} onChange={(e) => setEmail(e.target.value)}
+            error={!!emailError} helperText={emailError} />
+          <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
+            sx={{ background: BG, "&:hover": { opacity: 0.9 }, fontWeight: 600, mb: 2 }}>
+            {loading ? "Sending…" : "Send reset link"}
+          </Button>
+        </Box>
+      )}
 
-        {submitted ? (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            If an account exists for <strong>{email}</strong>, a reset link has been sent.
-          </Alert>
-        ) : (
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-            <TextField label="Email" type="email" fullWidth margin="normal" sx={{ mb: 3 }}
-              value={email} onChange={(e) => setEmail(e.target.value)}
-              error={!!emailError} helperText={emailError} />
-            <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
-              sx={{ background: BG, "&:hover": { opacity: 0.9 }, fontWeight: 600, mb: 2 }}>
-              {loading ? "Sending…" : "Send reset link"}
-            </Button>
-          </Box>
-        )}
-
-        <Link component={RouterLink} to="/login" variant="body2"
-          sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}>
-          <ArrowBackIcon fontSize="small" /> Back to sign in
-        </Link>
-      </Paper>
-    </Box>
+      <Link component={RouterLink} to="/login" variant="body2"
+        sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}>
+        <ArrowBackIcon fontSize="small" /> Back to sign in
+      </Link>
+    </AuthLayout>
   );
 };
 

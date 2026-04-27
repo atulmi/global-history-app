@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Box, Paper, Typography, TextField, Button, Link, Divider, Alert } from "@mui/material";
+import { Typography, TextField, Button, Link, Divider, Alert, Box } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
+import AuthLayout from "../components/AuthLayout";
 
 const BG = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
 const API = "http://localhost:3000/api/auth";
@@ -49,42 +50,35 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", background: BG, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", p: 2 }}>
-      <Typography variant="h4" fontWeight={700} color="white"
-        sx={{ mb: 3, cursor: "pointer", letterSpacing: "0.5px" }} onClick={() => navigate("/")}>
-        🌍 GlobalHistory
-      </Typography>
+    <AuthLayout>
+      <Typography variant="h5" fontWeight={700} mb={3}>Sign in</Typography>
 
-      <Paper elevation={6} sx={{ width: "100%", maxWidth: 420, borderRadius: 3, p: 4 }}>
-        <Typography variant="h5" fontWeight={700} mb={3}>Sign in</Typography>
+      {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
 
-        {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
+      <Box component="form" onSubmit={handleSubmit} noValidate>
+        <TextField label="Email" type="email" fullWidth margin="normal"
+          value={email} onChange={(e) => setEmail(e.target.value)}
+          error={!!fieldErrors.email} helperText={fieldErrors.email} />
+        <TextField label="Password" type="password" fullWidth margin="normal"
+          value={password} onChange={(e) => setPassword(e.target.value)}
+          error={!!fieldErrors.password} helperText={fieldErrors.password} />
 
-        <Box component="form" onSubmit={handleSubmit} noValidate>
-          <TextField label="Email" type="email" fullWidth margin="normal"
-            value={email} onChange={(e) => setEmail(e.target.value)}
-            error={!!fieldErrors.email} helperText={fieldErrors.email} />
-          <TextField label="Password" type="password" fullWidth margin="normal"
-            value={password} onChange={(e) => setPassword(e.target.value)}
-            error={!!fieldErrors.password} helperText={fieldErrors.password} />
-
-          <Box sx={{ textAlign: "right", mt: 0.5, mb: 2 }}>
-            <Link component={RouterLink} to="/forgot-password" variant="body2">Forgot password?</Link>
-          </Box>
-
-          <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
-            sx={{ background: BG, "&:hover": { opacity: 0.9 }, fontWeight: 600, mb: 2 }}>
-            {loading ? "Signing in…" : "Sign in"}
-          </Button>
+        <Box sx={{ textAlign: "right", mt: 0.5, mb: 2 }}>
+          <Link component={RouterLink} to="/forgot-password" variant="body2">Forgot password?</Link>
         </Box>
 
-        <Divider sx={{ my: 1 }} />
-        <Typography variant="body2" textAlign="center" mt={2}>
-          Don't have an account?{" "}
-          <Link component={RouterLink} to="/register" fontWeight={600}>Register</Link>
-        </Typography>
-      </Paper>
-    </Box>
+        <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
+          sx={{ background: BG, "&:hover": { opacity: 0.9 }, fontWeight: 600, mb: 2 }}>
+          {loading ? "Signing in…" : "Sign in"}
+        </Button>
+      </Box>
+
+      <Divider sx={{ my: 1 }} />
+      <Typography variant="body2" textAlign="center" mt={2}>
+        Don't have an account?{" "}
+        <Link component={RouterLink} to="/register" fontWeight={600}>Register</Link>
+      </Typography>
+    </AuthLayout>
   );
 };
 

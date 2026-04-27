@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from "react";
-import { Paper, Box, Typography, List, Button } from "@mui/material";
+import { Paper, Box, Typography, List, Button, Link } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import { type Note } from "../types/Note";
 import NoteCard from "./NoteCard";
+import { useAuth } from "../context/AuthContext";
 
 type DisplayExploreNoteMode = "recent" | "random";
 
@@ -22,6 +24,7 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
   onDeleteNote,
   onViewAll,
 }) => {
+  const { isLoggedIn } = useAuth();
   const [displayMode, setDisplayMode] =
     useState<DisplayExploreNoteMode>("recent");
 
@@ -101,6 +104,26 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
         })}
       </Box>
 
+      {!isLoggedIn && (
+        <Box sx={{ mb: 1.5, p: 1.5, backgroundColor: "#fff8e1", borderRadius: 2, border: "1px solid #ffe082", flexShrink: 0 }}>
+          <Typography variant="caption" sx={{ color: "#795548", lineHeight: 1.5 }}>
+            ⚠️ Notes are saved in your browser's local storage. Clearing your cache will erase them.{" "}
+            <Link component={RouterLink} to="/register" fontWeight={600} sx={{ color: "#795548" }}>
+              Register
+            </Link>{" "}
+            to save notes permanently.
+          </Typography>
+        </Box>
+      )}
+
+      {notes.length > 0 && (
+        <Box sx={{ mb: 1.5, p: 1.5, backgroundColor: "white", borderRadius: 2, border: `1px solid ${PURPLE}33`, flexShrink: 0 }}>
+          <Typography variant="caption" sx={{ color: "text.secondary", lineHeight: 1.5 }}>
+            👋 Welcome back! Here are notes you've saved:
+          </Typography>
+        </Box>
+      )}
+
       <Box sx={{ flexGrow: 1, overflowY: "auto", minHeight: 0 }}>
         <List dense>
           {displayedEntries.map((note) => (
@@ -116,27 +139,19 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
           {notes.length === 0 && (
             <Box
               sx={{
-                padding: "20px",
-                backgroundColor: "rgba(255, 255, 255, 1)",
-                boxShadow: "0 44px 34px rgba(0,0,0,0.1)",
+                p: 2,
+                backgroundColor: "white",
                 borderRadius: 2,
-                border: "2px solid black",
+                border: `2px dashed ${PURPLE}`,
               }}
             >
-              <Typography variant="body2" sx={{ color: "black" }}>
-                <b>No notes added yet</b>
-                <br /> <br />
-                You must be new here! Here are some ways to get started:
-                <ol>
-                  <li>
-                    Click on a country to fetch random historical facts about
-                    that country, and save those facts as a note
-                  </li>
-                  <li>
-                    Click the "Add Note" button on the navbar to add a note
-                    manually
-                  </li>
-                </ol>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 1 }}>
+                No notes yet!
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                🗺️ <b>Click a country</b> on the map to discover a random article and save it as a note.
+                <br /><br />
+                ✏️ Or use <b>Add Note</b> in the navbar to write one manually.
               </Typography>
             </Box>
           )}

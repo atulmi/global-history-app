@@ -1,8 +1,12 @@
-import React from "react";
-import { AppBar, Toolbar, Typography, Button, TextField, Box, IconButton } from "@mui/material";
+import React, { useState } from "react";
+import {
+  AppBar, Toolbar, Typography, Button, TextField, Box, IconButton,
+  Tooltip, Menu, MenuItem, Divider, useTheme, useMediaQuery,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ViewListIcon from "@mui/icons-material/ViewList";
+import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -31,10 +35,16 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const navigate = useNavigate();
   const { isLoggedIn, user, logout } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+    setMenuAnchor(null);
   };
 
   return (
@@ -60,35 +70,65 @@ const Navbar: React.FC<NavbarProps> = ({
           </Box>
         )}
 
-        {onNavigateToAllNotes && (
-          <Button variant="contained" data-testid="btn-all-notes" startIcon={<ViewListIcon />}
-            onClick={onNavigateToAllNotes} sx={{ marginRight: 2, ...btnSx }}>
-            All Notes
-          </Button>
-        )}
-
-        <Button variant="contained" data-testid="btn-add-note" startIcon={<AddIcon />}
-          onClick={onAddNote} sx={{ marginRight: 2, ...btnSx }}>
-          Add Note
-        </Button>
-
-        {isLoggedIn ? (
+        {isMobile ? (
           <>
-            <Typography variant="body2" sx={{ mr: 2, opacity: 0.9 }}>
-              {user?.name}
-            </Typography>
-            <Button variant="contained" onClick={handleLogout} sx={btnSx}>
-              Logout
-            </Button>
+            <Tooltip title="Menu">
+              <IconButton color="inherit" onClick={(e) => setMenuAnchor(e.currentTarget)}>
+                <MenuIcon />
+              </IconButton>
+            </Tooltip>
+            <Menu anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)}>
+              <MenuItem onClick={() => { onAddNote(); setMenuAnchor(null); }}>
+                <AddIcon fontSize="small" sx={{ mr: 1 }} /> Add Note
+              </MenuItem>
+              {onNavigateToAllNotes && (
+                <MenuItem onClick={() => { onNavigateToAllNotes(); setMenuAnchor(null); }}>
+                  <ViewListIcon fontSize="small" sx={{ mr: 1 }} /> All Notes
+                </MenuItem>
+              )}
+              <Divider />
+              {isLoggedIn ? (
+                [
+                  <MenuItem key="user" disabled>
+                    <Typography variant="body2">{user?.name}</Typography>
+                  </MenuItem>,
+                  <MenuItem key="logout" onClick={handleLogout}>Logout</MenuItem>,
+                ]
+              ) : (
+                <MenuItem onClick={() => { navigate("/login"); setMenuAnchor(null); }}>
+                  Login
+                </MenuItem>
+              )}
+            </Menu>
           </>
         ) : (
           <>
-            <Button variant="contained" onClick={() => navigate("/register")} sx={{ marginRight: 1, ...btnSx }}>
-              Register
+            {onNavigateToAllNotes && (
+              <Button variant="contained" data-testid="btn-all-notes" startIcon={<ViewListIcon />}
+                onClick={onNavigateToAllNotes} sx={{ marginRight: 2, ...btnSx }}>
+                All Notes
+              </Button>
+            )}
+
+            <Button variant="contained" data-testid="btn-add-note" startIcon={<AddIcon />}
+              onClick={onAddNote} sx={{ marginRight: 2, ...btnSx }}>
+              Add Note
             </Button>
-            <Button variant="contained" onClick={() => navigate("/login")} sx={btnSx}>
-              Login
-            </Button>
+
+            {isLoggedIn ? (
+              <>
+                <Typography variant="body2" sx={{ mr: 2, opacity: 0.9 }}>
+                  {user?.name}
+                </Typography>
+                <Button variant="contained" onClick={handleLogout} sx={btnSx}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button variant="contained" onClick={() => navigate("/login")} sx={btnSx}>
+                Login
+              </Button>
+            )}
           </>
         )}
       </Toolbar>
