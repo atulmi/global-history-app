@@ -6,6 +6,7 @@ import { Schema, model, type Document } from "mongoose";
  * option — do not set them manually.
  */
 export interface NoteDocument extends Document {
+  userId: string;
   text: string;
   tags: string[];
   createdAt: Date;
@@ -19,6 +20,7 @@ export interface NoteDocument extends Document {
 
 const noteSchema = new Schema<NoteDocument>(
   {
+    userId: { type: String, required: true, index: true },
     text: { type: String, required: true },
     tags: { type: [String], default: [] },
     title: { type: String },

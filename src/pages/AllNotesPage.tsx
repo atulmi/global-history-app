@@ -121,14 +121,18 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
     return true;
   };
 
-  const sortNotes = (notesToSort: Note[]) =>
-    [...notesToSort].sort((a, b) => {
+  const sortNotes = (notesToSort: Note[]) => {
+    if (sortOrder === "random") {
+      return [...notesToSort].sort(() => Math.random() - 0.5);
+    }
+    return [...notesToSort].sort((a, b) => {
       if (sortOrder === "newest")
         return b.createdAt.getTime() - a.createdAt.getTime();
       if (sortOrder === "oldest")
         return a.createdAt.getTime() - b.createdAt.getTime();
       return 0;
     });
+  };
 
   const filteredNotes = sortNotes(notes.filter((note) => baseFilter(note)));
 

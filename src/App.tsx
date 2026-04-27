@@ -35,7 +35,12 @@ function saveLocalNotes(notes: Note[]) {
 }
 
 function App(): React.JSX.Element {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, token } = useAuth();
+
+  const authHeaders = () => ({
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  });
   const [notes, setNotes] = useState<Note[]>([]);
   const [notesLoading, setNotesLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -55,7 +60,7 @@ function App(): React.JSX.Element {
           try {
             await fetch(`${API}/sync`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: authHeaders(),
               body: JSON.stringify(guestNotes),
             });
           } catch (err) {
@@ -65,7 +70,7 @@ function App(): React.JSX.Element {
           // the same notes on every login. Content is preserved in DB on success.
           localStorage.removeItem(LOCAL_STORAGE_KEY);
         }
-        const res = await fetch(API);
+        const res = await fetch(API, { headers: authHeaders() });
         const data: Record<string, unknown>[] = await res.json();
         setNotes(data.map(deserializeNote));
       };
@@ -82,7 +87,7 @@ function App(): React.JSX.Element {
     if (isLoggedIn) {
       const res = await fetch(API, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(note),
       });
       const created = deserializeNote(await res.json());
@@ -101,7 +106,7 @@ function App(): React.JSX.Element {
     if (isLoggedIn) {
       const res = await fetch(`${API}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(note),
       });
       const updated = deserializeNote(await res.json());
@@ -117,7 +122,7 @@ function App(): React.JSX.Element {
 
   const deleteNote = async (id: string) => {
     if (isLoggedIn) {
-      await fetch(`${API}/${id}`, { method: "DELETE" });
+      await fetch(`${API}/${id}`, { method: "DELETE", headers: authHeaders() });
     }
     setNotes((prev) => {
       const updated = prev.filter((n) => n.id !== id);
@@ -134,13 +139,8 @@ function App(): React.JSX.Element {
         path="/"
         element={
           <Notes
-            notes={notes}
             notesLoading={notesLoading}
             addNote={addNote}
-            updateNote={updateNote}
-            deleteNote={deleteNote}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
             addDialogOpen={addDialogOpen}
             setAddDialogOpen={setAddDialogOpen}
             onOpenAddDialog={handleOpenAddDialog}

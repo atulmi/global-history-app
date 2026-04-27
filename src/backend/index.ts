@@ -3,6 +3,7 @@ import cors from "cors";
 import { connectDB } from "./db";
 import { NoteModel } from "./noteModel";
 import authRoutes from "./authRoutes";
+import { requireAuth, type AuthRequest } from "./authMiddleware";
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
@@ -15,10 +16,10 @@ app.use("/api/auth", authRoutes);
 // Notes CRUD
 // ---------------------------------------------------------------------------
 
-/** GET /api/notes — return all notes, newest first */
-app.get("/api/notes", async (_req, res) => {
+/** GET /api/notes — return all notes for the logged-in user, newest first */
+app.get("/api/notes", requireAuth, async (req: AuthRequest, res) => {
   try {
-    const notes = await NoteModel.find().sort({ createdAt: -1 });
+    const notes = await NoteModel.find({ userId: req.userId }).sort({ createdAt: -1 });
     res.json(notes);
   } catch (err) {
     console.error(err);
@@ -31,7 +32,7 @@ app.get("/api/notes", async (_req, res) => {
  * Preserves original createdAt/updatedAt so note history is not lost.
  * Must be defined before /api/notes/:id to avoid "sync" being treated as an id.
  */
-app.post("/api/notes/sync", async (req, res) => {
+app.post("/api/notes/sync", requireAuth, async (req: AuthRequest, res) => {
   try {
     const incoming = req.body as Array<{
       text: string;
@@ -51,6 +52,7 @@ app.post("/api/notes/sync", async (req, res) => {
     }
 
     const docs = incoming.map((n) => ({
+      userId: req.userId,
       text: n.text,
       tags: n.tags ?? [],
       title: n.title,
@@ -75,7 +77,7 @@ app.post("/api/notes/sync", async (req, res) => {
 });
 
 /** POST /api/notes — create a new note */
-app.post("/api/notes", async (req, res) => {
+app.post("/api/notes", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { text, tags, title, country, source, isPinned, isArchived } =
       req.body as {
@@ -89,6 +91,7 @@ app.post("/api/notes", async (req, res) => {
       };
 
     const note = await NoteModel.create({
+      userId: req.userId,
       text,
       tags: tags ?? [],
       title,
@@ -106,7 +109,7 @@ app.post("/api/notes", async (req, res) => {
 });
 
 /** PUT /api/notes/:id — update an existing note */
-app.put("/api/notes/:id", async (req, res) => {
+app.put("/api/notes/:id", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
     const { text, tags, title, country, source, isPinned, isArchived } =
@@ -120,8 +123,8 @@ app.put("/api/notes/:id", async (req, res) => {
         isArchived?: boolean;
       };
 
-    const note = await NoteModel.findByIdAndUpdate(
-      id,
+    const note = await NoteModel.findOneAndUpdate(
+      { _id: id, userId: req.userId },
       { text, tags, title, country, source, isPinned, isArchived },
       { new: true, runValidators: true },
     );
@@ -139,10 +142,10 @@ app.put("/api/notes/:id", async (req, res) => {
 });
 
 /** DELETE /api/notes/:id — delete a single note */
-app.delete("/api/notes/:id", async (req, res) => {
+app.delete("/api/notes/:id", requireAuth, async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const note = await NoteModel.findByIdAndDelete(id);
+    const note = await NoteModel.findOneAndDelete({ _id: id, userId: req.userId });
 
     if (!note) {
       res.status(404).json({ message: "Note not found" });
@@ -156,10 +159,10 @@ app.delete("/api/notes/:id", async (req, res) => {
   }
 });
 
-/** DELETE /api/notes — delete ALL notes (used by the "Clear All Notes" button) */
-app.delete("/api/notes", async (_req, res) => {
+/** DELETE /api/notes — delete ALL notes for the logged-in user */
+app.delete("/api/notes", requireAuth, async (req: AuthRequest, res) => {
   try {
-    await NoteModel.deleteMany({});
+    await NoteModel.deleteMany({ userId: req.userId });
     res.status(204).send();
   } catch (err) {
     console.error(err);

@@ -7,7 +7,6 @@ import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
 import WorldMap from "./components/WorldMap";
 import Navbar from "./components/Navbar";
 import NoteDialog from "./components/NoteDialog";
-import DeleteConfirmDialog from "./components/DeleteConfirmDialog";
 import SuccessSnackbar from "./components/SuccessSnackbar";
 import WikipediaDrawer from "./components/WikipediaDrawer";
 import ExploreNotesSidebar from "./components/ExploreNotesSidebar";
@@ -18,24 +17,16 @@ import {
 import { type Note } from "./types/Note";
 
 type NotesProps = {
-  notes: Note[];
   notesLoading: boolean;
   addNote: (note: Omit<Note, "id">) => void;
-  updateNote: (id: string, note: Note) => void;
-  deleteNote: (id: string) => void;
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
   addDialogOpen: boolean;
   setAddDialogOpen: (open: boolean) => void;
   onOpenAddDialog: () => void;
 };
 
 const Notes: React.FC<NotesProps> = ({
-  notes,
   notesLoading,
   addNote,
-  updateNote,
-  deleteNote,
   addDialogOpen,
   setAddDialogOpen,
   onOpenAddDialog,
@@ -69,15 +60,6 @@ const Notes: React.FC<NotesProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTags, setDrawerTags] = useState<string[]>([]);
-
-  // Edit note state
-  const [editingNote, setEditingNote] = useState<Note | null>(null);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-
-  // Delete confirmation state
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
   // Success message state
   const [successOpen, setSuccessOpen] = useState(false);
@@ -161,36 +143,6 @@ const Notes: React.FC<NotesProps> = ({
     setDrawerTags([]);
   };
 
-  const handleEditNote = (note: Note, id: string) => {
-    setEditingNote(note);
-    setEditingNoteId(id);
-    setEditDialogOpen(true);
-  };
-
-  const handleSaveEdit = (note: Note) => {
-    if (editingNoteId !== null) {
-      updateNote(editingNoteId, note);
-      setEditDialogOpen(false);
-      setEditingNote(null);
-      setEditingNoteId(null);
-      setSuccessMessage("Note successfully updated!");
-      setSuccessOpen(true);
-    }
-  };
-
-  const handleDeleteNote = (id: string) => {
-    setDeletingNoteId(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteNote = () => {
-    if (deletingNoteId !== null) {
-      deleteNote(deletingNoteId);
-      setDeleteDialogOpen(false);
-      setDeletingNoteId(null);
-    }
-  };
-
   return (
     <Box
       sx={{
@@ -225,13 +177,9 @@ const Notes: React.FC<NotesProps> = ({
           spacing={0}
           sx={{ height: "100%", margin: 0, width: "100%" }}
         >
-          {/* Left Sidebar - Explore Your Notes (View Recently Added Notes or Random Notes) */}
+          {/* Left Sidebar */}
           <Grid size={2} sx={{ height: "100%" }}>
             <ExploreNotesSidebar
-              notes={notes}
-              totalNotes={notes.length}
-              onEditNote={handleEditNote}
-              onDeleteNote={handleDeleteNote}
               onViewAll={() => navigate("/all-notes")}
             />
           </Grid>
@@ -310,27 +258,6 @@ const Notes: React.FC<NotesProps> = ({
         onClose={() => setAddDialogOpen(false)}
         onSave={handleAddNote}
         mode="add"
-      />
-
-      <NoteDialog
-        open={editDialogOpen}
-        onClose={() => {
-          setEditDialogOpen(false);
-          setEditingNote(null);
-          setEditingNoteId(null);
-        }}
-        onSave={handleSaveEdit}
-        note={editingNote}
-        mode="edit"
-      />
-
-      <DeleteConfirmDialog
-        open={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setDeletingNoteId(null);
-        }}
-        onConfirm={confirmDeleteNote}
       />
 
       <SuccessSnackbar
