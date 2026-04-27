@@ -4,6 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 type NavbarProps = {
   onAddNote: () => void;
@@ -12,6 +13,12 @@ type NavbarProps = {
   showSearch?: boolean;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
+};
+
+const btnSx = {
+  backgroundColor: "rgba(255,255,255,0.2)",
+  backdropFilter: "blur(10px)",
+  "&:hover": { backgroundColor: "rgba(255,255,255,0.3)" },
 };
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -23,115 +30,67 @@ const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
 }) => {
   const navigate = useNavigate();
+  const { isLoggedIn, user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
-    <AppBar
-      position="static"
-      data-testid="navbar"
-      sx={{
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-        boxShadow: "none",
-        margin: 0,
-      }}
-    >
+    <AppBar position="static" data-testid="navbar"
+      sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", boxShadow: "none", margin: 0 }}>
       <Toolbar>
         {onNavigateBack && (
-          <IconButton
-            edge="start"
-            color="inherit"
-            onClick={onNavigateBack}
-            sx={{ marginRight: 2 }}
-          >
+          <IconButton edge="start" color="inherit" onClick={onNavigateBack} sx={{ marginRight: 2 }}>
             <ArrowBackIcon />
           </IconButton>
         )}
-        <Typography
-          variant="h5"
-          onClick={() => navigate("/")}
-          sx={{
-            flexGrow: showSearch ? 0 : 1,
-            fontWeight: 700,
-            letterSpacing: "0.5px",
-            cursor: "pointer",
-          }}
-        >
+
+        <Typography variant="h5" onClick={() => navigate("/")}
+          sx={{ flexGrow: showSearch ? 0 : 1, fontWeight: 700, letterSpacing: "0.5px", cursor: "pointer" }}>
           🌍 GlobalHistory
         </Typography>
 
         {showSearch && onSearchChange && (
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: "flex",
-              justifyContent: "center",
-              px: 4,
-            }}
-          >
-            <TextField
-              label="Search Notes"
-              variant="outlined"
-              size="small"
-              fullWidth
-              sx={{
-                backgroundColor: "white",
-                borderRadius: 1,
-                maxWidth: "600px",
-              }}
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
+          <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 4 }}>
+            <TextField label="Search Notes" variant="outlined" size="small" fullWidth
+              sx={{ backgroundColor: "white", borderRadius: 1, maxWidth: "600px" }}
+              value={searchTerm} onChange={(e) => onSearchChange(e.target.value)} />
           </Box>
         )}
 
         {onNavigateToAllNotes && (
-          <Button
-            variant="contained"
-            data-testid="btn-all-notes"
-            startIcon={<ViewListIcon />}
-            onClick={onNavigateToAllNotes}
-            sx={{
-              marginRight: 2,
-              backgroundColor: "rgba(255,255,255,0.2)",
-              backdropFilter: "blur(10px)",
-              "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.3)",
-              },
-            }}
-          >
+          <Button variant="contained" data-testid="btn-all-notes" startIcon={<ViewListIcon />}
+            onClick={onNavigateToAllNotes} sx={{ marginRight: 2, ...btnSx }}>
             All Notes
           </Button>
         )}
 
-        <Button
-          variant="contained"
-          data-testid="btn-add-note"
-          startIcon={<AddIcon />}
-          onClick={onAddNote}
-          sx={{
-            marginRight: 2,
-            backgroundColor: "rgba(255,255,255,0.2)",
-            backdropFilter: "blur(10px)",
-            "&:hover": {
-              backgroundColor: "rgba(255,255,255,0.3)",
-            },
-          }}
-        >
+        <Button variant="contained" data-testid="btn-add-note" startIcon={<AddIcon />}
+          onClick={onAddNote} sx={{ marginRight: 2, ...btnSx }}>
           Add Note
         </Button>
 
-        <Button
-          variant="contained"
-          sx={{
-            backgroundColor: "rgba(255,255,255,0.2)",
-            backdropFilter: "blur(10px)",
-            color: "white",
-            "&:hover": {
-              backgroundColor: "rgba(255,255,255,0.3)",
-            },
-          }}
-        >
-          Login
-        </Button>
+        {isLoggedIn ? (
+          <>
+            <Typography variant="body2" sx={{ mr: 2, opacity: 0.9 }}>
+              {user?.name}
+            </Typography>
+            <Button variant="contained" onClick={handleLogout} sx={btnSx}>
+              Logout
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="contained" onClick={() => navigate("/register")} sx={{ marginRight: 1, ...btnSx }}>
+              Register
+            </Button>
+            <Button variant="contained" onClick={() => navigate("/login")} sx={btnSx}>
+              Login
+            </Button>
+          </>
+        )}
       </Toolbar>
     </AppBar>
   );

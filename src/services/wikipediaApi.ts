@@ -5,37 +5,136 @@ export type WikipediaArticle = {
   country?: string;
 };
 
+const TOPICS = [
+  "history",
+  "culture",
+  "geography",
+  "politics",
+  "economy",
+  "military",
+  "religion",
+  "architecture",
+  "cuisine",
+  "art",
+  "sport",
+  "science",
+  "people",
+  "literature",
+  "music",
+];
+
+function pickNRandom<T>(arr: T[], n: number): T[] {
+  return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
+}
+
+async function searchArticles(
+  query: string,
+): Promise<{ title: string; snippet: string }[]> {
+  const url =
+    `https://en.wikipedia.org/w/api.php?` +
+    `action=query&list=search&` +
+    `srsearch=${encodeURIComponent(query)}&` +
+    `format=json&origin=*&srlimit=50`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data?.query?.search ?? [];
+}
+
+function countOccurrences(text: string, term: string): number {
+  let count = 0,
+    pos = 0;
+  while ((pos = text.indexOf(term, pos)) !== -1) {
+    count++;
+    pos += term.length;
+  }
+  return count;
+}
+
 /**
- * Fetches random history-related articles for a specific country
+ * Scores how relevant an article is to a given country (higher = more relevant).
+ * Articles need a score >= RELEVANCE_THRESHOLD to be included.
+ *
+ *  +2  Country name is in the article title            (strongest signal)
+ *  +1  per mention in the snippet, up to +3            (frequency)
+ *  +1  First mention is within the first 120 chars     (early / intro appearance)
+ *  +1  Country name accounts for >= 8% of snippet text (density)
+ *
+ * Combining all four prevents individual signals from being gamed:
+ *  - Title alone misses city/person articles ("Maseru", "Moshoeshoe I")
+ *  - Frequency alone is fooled by major powers mentioned in ally articles
+ *  - Position alone is fooled by articles that open with a geographic list
+ *  - Density alone is fooled by short snippets with a single early mention
+ */
+const RELEVANCE_THRESHOLD = 3;
+
+function relevanceScore(
+  title: string,
+  snippet: string,
+  country: string,
+): number {
+  const countryLower = country.toLowerCase();
+  const snippetText = snippet.replace(/<[^>]+>/g, "").toLowerCase();
+  let score = 0;
+
+  if (title.toLowerCase().includes(countryLower)) score += 2;
+
+  const mentions = countOccurrences(snippetText, countryLower);
+  score += Math.min(3, mentions);
+
+  const firstPos = snippetText.indexOf(countryLower);
+  if (firstPos !== -1 && firstPos <= 120) score += 1;
+
+  const density =
+    snippetText.length > 0
+      ? (mentions * countryLower.length) / snippetText.length
+      : 0;
+  if (density >= 0.08) score += 1;
+
+  return score;
+}
+
+// Always-run searches that ensure important article types are represented
+// regardless of which random topics are picked this click.
+const FIXED_SEARCHES = [
+  "provinces states regions districts", // administrative divisions
+  "president prime minister king emperor rulers leaders", // heads of state / rulers
+];
+
+const EXCLUDED_TITLE_PREFIXES = ["Outline of", "List of"];
+
+/**
+ * Fetches a random Wikipedia article for a country by running several
+ * topic searches in parallel, then scoring each result and keeping only
+ * those that meet the relevance threshold.
+ *
+ * Always includes searches for administrative divisions and leaders so
+ * provinces, states, and important figures are consistently in the pool.
  */
 export const fetchRandomCountryHistory = async (
-  country: string
+  country: string,
 ): Promise<WikipediaArticle> => {
   try {
-    // Search for history-related articles about the country
-    const searchUrl =
-      `https://en.wikipedia.org/w/api.php?` +
-      `action=query&` +
-      `list=search&` +
-      `srsearch=${encodeURIComponent(country)} history&` +
-      `format=json&` +
-      `origin=*&` +
-      `srlimit=20`; // Get top 20 results to pick from
+    const queries = [
+      ...pickNRandom(TOPICS, 4).map((topic) => `${country} ${topic}`),
+      ...FIXED_SEARCHES.map((terms) => `${country} ${terms}`),
+    ];
 
-    const searchResponse = await fetch(searchUrl);
-    const searchData = await searchResponse.json();
+    const results = await Promise.all(queries.map(searchArticles));
 
-    const articles = searchData.query.search;
+    const seen = new Set<string>();
+    const articles = results.flat().filter(({ title, snippet }) => {
+      if (seen.has(title)) return false;
+      seen.add(title);
+      if (EXCLUDED_TITLE_PREFIXES.some((prefix) => title.startsWith(prefix)))
+        return false;
+      return relevanceScore(title, snippet, country) >= RELEVANCE_THRESHOLD;
+    });
 
-    if (!articles || articles.length === 0) {
+    if (articles.length === 0) {
       throw new Error(`No articles found for ${country}`);
     }
 
-    // Pick a random article from the results
-    const randomIndex = Math.floor(Math.random() * articles.length);
-    const randomArticle = articles[randomIndex];
-
-    // Fetch the full article content
+    const randomArticle = articles[Math.floor(Math.random() * articles.length)];
     return await fetchArticleContent(randomArticle.title, country);
   } catch (error) {
     console.error("Error fetching country history:", error);
@@ -43,34 +142,49 @@ export const fetchRandomCountryHistory = async (
   }
 };
 
+const MIN_EXTRACT_LENGTH = 500;
+
+async function fetchExtract(
+  title: string,
+  introOnly: boolean,
+): Promise<{ page: any; url: string }> {
+  const base =
+    `https://en.wikipedia.org/w/api.php?` +
+    `action=query&` +
+    `titles=${encodeURIComponent(title)}&` +
+    `prop=extracts|info&` +
+    `explaintext=1&` +
+    `inprop=url&` +
+    `format=json&` +
+    `origin=*`;
+  const url = introOnly ? `${base}&exintro=1` : `${base}&exchars=5000`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const pages = data.query.pages;
+  const page = pages[Object.keys(pages)[0]];
+  return { page, url: page?.fullurl ?? "" };
+}
+
 /**
- * Fetches the content of a specific Wikipedia article
+ * Fetches the content of a specific Wikipedia article.
+ * Tries the intro section first; if it is shorter than MIN_EXTRACT_LENGTH
+ * characters, fetches up to 5000 characters of the full article body so
+ * that stubs and short intros still have enough content to display.
  */
 export const fetchArticleContent = async (
   title: string,
-  country?: string
+  country?: string,
 ): Promise<WikipediaArticle> => {
   try {
-    const url =
-      `https://en.wikipedia.org/w/api.php?` +
-      `action=query&` +
-      `titles=${encodeURIComponent(title)}&` +
-      `prop=extracts|info&` +
-      `exintro=1&` + // Just the intro section
-      `explaintext=1&` + // Plain text, no HTML
-      `inprop=url&` +
-      `format=json&` +
-      `origin=*`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const pages = data.query.pages;
-    const pageId = Object.keys(pages)[0];
-    const page = pages[pageId];
+    let { page } = await fetchExtract(title, true);
 
     if (!page || page.missing) {
       throw new Error(`Article not found: ${title}`);
+    }
+
+    if (!page.extract || page.extract.length < MIN_EXTRACT_LENGTH) {
+      const full = await fetchExtract(title, false);
+      if (full.page?.extract) page = full.page;
     }
 
     return {
@@ -94,7 +208,7 @@ export const fetchRandomArticle = async (): Promise<WikipediaArticle> => {
       `https://en.wikipedia.org/w/api.php?` +
       `action=query&` +
       `list=random&` +
-      `rnnamespace=0&` + // Main articles only
+      `rnnamespace=0&` +
       `rnlimit=1&` +
       `format=json&` +
       `origin=*`;
