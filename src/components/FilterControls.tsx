@@ -66,6 +66,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
     "& .MuiOutlinedInput-notchedOutline": {
       borderColor: "black",
       borderWidth: "1px",
+      boxShadow: "1px 1px 1px gray",
     },
   };
 
@@ -74,12 +75,16 @@ const FilterControls: React.FC<FilterControlsProps> = ({
       <Box
         sx={{
           display: "flex",
-          gap: 2,
+          gap: 4,
           flexWrap: "wrap",
           alignItems: "center",
         }}
       >
-        <FormControl data-testid="filter-country" size="small" sx={{ minWidth: 180, ...selectStyle }}>
+        <FormControl
+          data-testid="filter-country"
+          size="small"
+          sx={{ minWidth: 180, ...selectStyle }}
+        >
           <InputLabel>Country</InputLabel>
           <Select
             // Reflect the active mode back into the select:
@@ -107,7 +112,9 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             <MenuItem value="All">All Countries</MenuItem>
             <Divider />
             <MenuItem value="sections_1">Display notes for 1 country</MenuItem>
-            <MenuItem value="sections_2">Display notes for 2 countries</MenuItem>
+            <MenuItem value="sections_2">
+              Display notes for 2 countries
+            </MenuItem>
           </Select>
         </FormControl>
 
@@ -141,7 +148,11 @@ const FilterControls: React.FC<FilterControlsProps> = ({
             />
           ))}
 
-        <FormControl data-testid="filter-sort" size="small" sx={{ minWidth: 150, ...selectStyle }}>
+        <FormControl
+          data-testid="filter-sort"
+          size="small"
+          sx={{ minWidth: 150, ...selectStyle }}
+        >
           <InputLabel>Sort By</InputLabel>
           <Select
             value={sortOrder}
@@ -153,7 +164,11 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           </Select>
         </FormControl>
 
-        <FormControl data-testid="filter-tag" size="small" sx={{ minWidth: 150, ...selectStyle }}>
+        <FormControl
+          data-testid="filter-tag"
+          size="small"
+          sx={{ minWidth: 150, ...selectStyle }}
+        >
           <InputLabel>Tag</InputLabel>
           <Select
             value={filterTag}

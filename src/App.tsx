@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import Notes from "./Notes.tsx";
 import AllNotesPage from "./pages/AllNotesPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
@@ -93,7 +94,7 @@ function App(): React.JSX.Element {
       const created = deserializeNote(await res.json());
       setNotes((prev) => [created, ...prev]);
     } else {
-      const newNote: Note = { id: crypto.randomUUID(), ...note };
+      const newNote: Note = { ...note, id: crypto.randomUUID() };
       setNotes((prev) => {
         const updated = [newNote, ...prev];
         saveLocalNotes(updated);
@@ -133,13 +134,36 @@ function App(): React.JSX.Element {
 
   const handleOpenAddDialog = () => setAddDialogOpen(true);
 
+  if (notesLoading) {
+    return (
+      <Box
+        sx={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 9999,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "white",
+          gap: 2,
+        }}
+      >
+        <CircularProgress size={80} thickness={4} />
+        <Typography variant="h5" color="text.secondary">
+          Loading notes...
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Routes>
       <Route
         path="/"
         element={
           <Notes
-            notesLoading={notesLoading}
+            notes={notes}
             addNote={addNote}
             addDialogOpen={addDialogOpen}
             setAddDialogOpen={setAddDialogOpen}

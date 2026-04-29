@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Grid, Paper, Box, Typography, CircularProgress, IconButton, Tooltip } from "@mui/material";
+import { Grid, Paper, Box, Typography, IconButton, Tooltip } from "@mui/material";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import CenterFocusStrongIcon from "@mui/icons-material/CenterFocusStrong";
@@ -17,7 +17,7 @@ import {
 import { type Note } from "./types/Note";
 
 type NotesProps = {
-  notesLoading: boolean;
+  notes: Note[];
   addNote: (note: Omit<Note, "id">) => void;
   addDialogOpen: boolean;
   setAddDialogOpen: (open: boolean) => void;
@@ -25,7 +25,7 @@ type NotesProps = {
 };
 
 const Notes: React.FC<NotesProps> = ({
-  notesLoading,
+  notes,
   addNote,
   addDialogOpen,
   setAddDialogOpen,
@@ -154,17 +154,6 @@ const Notes: React.FC<NotesProps> = ({
         position: "relative",
       }}
     >
-      {notesLoading && (
-        <Box sx={{
-          position: "absolute", inset: 0, zIndex: 20,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          backgroundColor: "white", gap: 2,
-        }}>
-          <CircularProgress size={80} thickness={4} />
-          <Typography variant="h5" color="text.secondary">Loading notes...</Typography>
-        </Box>
-      )}
-
       <Navbar
         onAddNote={onOpenAddDialog}
         onNavigateToAllNotes={() => navigate("/all-notes")}
@@ -180,6 +169,7 @@ const Notes: React.FC<NotesProps> = ({
           {/* Left Sidebar */}
           <Grid size={2} sx={{ height: "100%" }}>
             <ExploreNotesSidebar
+              notes={notes}
               onViewAll={() => navigate("/all-notes")}
             />
           </Grid>

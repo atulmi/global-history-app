@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   Button,
   Box,
@@ -12,6 +9,8 @@ import {
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import CloseIcon from "@mui/icons-material/Close";
+import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
+import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined";
 import { COUNTRIES } from "../data/countries";
 import { type Note } from "../types/Note";
 import TagsSelect from "./TagsSelect";
@@ -34,6 +33,30 @@ type NoteDialogProps = {
   mode: "add" | "edit";
 };
 
+const PURPLE = "#667eea";
+const PURPLE_DARK = "#764ba2";
+
+const fieldSx = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "10px",
+    backgroundColor: "#fafafe",
+    transition: "box-shadow 0.2s",
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: PURPLE,
+    },
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: PURPLE,
+      borderWidth: "2px",
+    },
+    "&.Mui-focused": {
+      boxShadow: `0 0 0 3px ${PURPLE}22`,
+    },
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: PURPLE,
+  },
+};
+
 const NoteDialog: React.FC<NoteDialogProps> = ({
   open,
   onClose,
@@ -45,6 +68,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
   const [text, setText] = useState("");
   const [country, setCountry] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
     if (note && mode === "edit") {
@@ -58,11 +82,19 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       setCountry(null);
       setTags([]);
     }
+    setAttempted(false);
   }, [note, mode, open]);
 
   const handleSave = () => {
+    if (!text || !country) {
+      setAttempted(true);
+      return;
+    }
     if (text && country) {
       const now = new Date();
+
+      console.log("Note to update: ", note);
+
       const savedNote: Note = {
         id: note?.id ?? "",
         text,
@@ -88,6 +120,8 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
     onClose();
   };
 
+  const isAdd = mode === "add";
+
   return (
     <Dialog
       open={open}
@@ -100,63 +134,96 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       fullWidth
       data-testid="note-dialog"
       slotProps={{
-        paper: { sx: { maxHeight: "90vh" } },
+        paper: {
+          sx: {
+            borderRadius: "18px",
+            overflow: "hidden",
+            maxHeight: "90vh",
+            boxShadow:
+              "0 24px 60px rgba(102, 126, 234, 0.25), 0 8px 20px rgba(0,0,0,0.12)",
+          },
+        },
       }}
     >
-      <DialogTitle>
-        <Box
+      {/* Header */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${PURPLE_DARK} 0%, ${PURPLE} 100%)`,
+          px: 3,
+          py: 2.5,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+        }}
+      >
+        {isAdd ? (
+          <NoteAddOutlinedIcon
+            sx={{ color: "rgba(255,255,255,0.9)", fontSize: 26 }}
+          />
+        ) : (
+          <EditNoteOutlinedIcon
+            sx={{ color: "rgba(255,255,255,0.9)", fontSize: 26 }}
+          />
+        )}
+        <Typography
+          variant="h6"
+          fontWeight={700}
+          sx={{ color: "#fff", letterSpacing: 0.2, flex: 1 }}
+        >
+          {isAdd ? "Add New Note" : "Edit Note"}
+        </Typography>
+        <IconButton
+          onClick={handleClose}
+          size="small"
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            color: "rgba(255,255,255,0.8)",
+            "&:hover": {
+              color: "#fff",
+              backgroundColor: "rgba(255,255,255,0.15)",
+            },
           }}
         >
-          <Typography variant="h5" fontWeight={700}>
-            {mode === "add" ? "✏️ Add New Note" : "✏️ Edit Note"}
-          </Typography>
-          <IconButton onClick={handleClose} size="small">
-            <CloseIcon />
-          </IconButton>
-        </Box>
-      </DialogTitle>
-      <DialogContent sx={{ overflowY: "auto" }}>
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
+
+      {/* Body */}
+      <Box
+        sx={{
+          px: 3,
+          pt: 3,
+          pb: 1,
+          overflowY: "auto",
+          backgroundColor: "#fdfdff",
+        }}
+      >
         <TextField
           label="Title"
           variant="outlined"
           fullWidth
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          placeholder="Give your note a title…"
           data-testid="note-dialog-title"
-          sx={{
-            marginTop: 2,
-            marginBottom: 2,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "#fafafa",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
-            },
-          }}
+          sx={{ ...fieldSx, mb: 2.5 }}
         />
         <TextField
           label="Content"
           variant="outlined"
           fullWidth
           multiline
-          rows={10}
+          rows={9}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          placeholder="Write your note here…"
           data-testid="note-dialog-content"
           required
-          error={!text}
-          helperText={!text ? "Content is required" : " "}
+          error={attempted && !text}
+          helperText={attempted && !text ? "Content is required" : " "}
           sx={{
-            marginBottom: 2,
-            "& .MuiOutlinedInput-root": {
-              backgroundColor: "#fafafa",
-              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
-            },
-            "& .MuiInputBase-inputMultiline": {
-              overflow: "auto !important",
-            },
+            ...fieldSx,
+            mb: 1,
+            "& .MuiInputBase-inputMultiline": { overflow: "auto !important" },
           }}
         />
         <Autocomplete
@@ -170,32 +237,67 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
               label="Country"
               variant="outlined"
               required
-              error={!country}
-              helperText={!country ? "Country is required" : " "}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  backgroundColor: "#fafafa",
-                  boxShadow: "inset 0 1px 3px rgba(0,0,0,0.1)",
-                },
-              }}
+              error={attempted && !country}
+              helperText={attempted && !country ? "Country is required" : " "}
+              sx={fieldSx}
             />
           )}
-          sx={{ marginBottom: 2 }}
+          sx={{ mb: 1 }}
         />
         <TagsSelect value={tags} onChange={setTags} />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} data-testid="btn-note-dialog-cancel">Cancel</Button>
+      </Box>
+
+      {/* Footer */}
+      <Box
+        sx={{
+          px: 3,
+          py: 2,
+          display: "flex",
+          justifyContent: "flex-end",
+          gap: 1.5,
+          backgroundColor: "#fdfdff",
+          borderTop: "1px solid rgba(102, 126, 234, 0.1)",
+        }}
+      >
+        <Button
+          onClick={handleClose}
+          data-testid="btn-note-dialog-cancel"
+          sx={{
+            color: "#888",
+            borderRadius: "10px",
+            px: 2.5,
+            textTransform: "none",
+            fontWeight: 600,
+            "&:hover": { backgroundColor: "#f0f0f8", color: "#555" },
+          }}
+        >
+          Cancel
+        </Button>
         <Button
           onClick={handleSave}
           variant="contained"
-          color="primary"
-          disabled={!text || !country}
           data-testid="btn-note-dialog-save"
+          sx={{
+            background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`,
+            borderRadius: "10px",
+            px: 3,
+            textTransform: "none",
+            fontWeight: 700,
+            boxShadow: "0 4px 14px rgba(102, 126, 234, 0.4)",
+            "&:hover": {
+              background: `linear-gradient(135deg, #5a70d8 0%, #6a3f98 100%)`,
+              boxShadow: "0 6px 18px rgba(102, 126, 234, 0.5)",
+            },
+            "&:disabled": {
+              background: "#e0e0e8",
+              boxShadow: "none",
+              color: "#aaa",
+            },
+          }}
         >
-          {mode === "add" ? "Add Note" : "Save Changes"}
+          {isAdd ? "Submit Note" : "Save Changes"}
         </Button>
-      </DialogActions>
+      </Box>
     </Dialog>
   );
 };
