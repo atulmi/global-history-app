@@ -33,6 +33,10 @@ const NoteCard: React.FC<NoteCardProps> = ({
     return (
       <Box
         onClick={onEdit}
+        role="article"
+        tabIndex={0}
+        aria-label={`Note: ${note.title || "Untitled"}`}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(); } }}
         sx={{
           flexDirection: "column",
           alignItems: "flex-start",
@@ -82,6 +86,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                 e.stopPropagation();
                 onEdit();
               }}
+              aria-label="Edit note"
               sx={{ padding: "2px" }}
             >
               <EditIcon fontSize="small" />
@@ -93,6 +98,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                 e.stopPropagation();
                 onDelete();
               }}
+              aria-label="Delete note"
               sx={{ padding: "2px" }}
               color="error"
             >
@@ -137,6 +143,10 @@ const NoteCard: React.FC<NoteCardProps> = ({
   return (
     <Box
       onClick={onEdit}
+      role="article"
+      tabIndex={0}
+      aria-label={`Note: ${note.title || "Untitled"}`}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(); } }}
       sx={{
         mb: 1.5,
         backgroundColor: "rgba(255, 255, 255, 1)",
@@ -181,6 +191,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
               e.stopPropagation();
               onEdit();
             }}
+            aria-label="Edit note"
             sx={{ padding: "4px" }}
           >
             <EditIcon fontSize="small" />
@@ -192,6 +203,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
               e.stopPropagation();
               onDelete();
             }}
+            aria-label="Delete note"
             sx={{ padding: "4px" }}
             color="error"
           >

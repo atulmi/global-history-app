@@ -142,11 +142,11 @@ const NotesTable: React.FC<NotesTableProps> = ({
           borderBottom: "1px solid black",
         }}
       >
-        <Table size="small" stickyHeader>
+        <Table size="small" stickyHeader aria-label="Notes">
           <TableHead>
             <TableRow>
               {/* Title — sortable, fixed narrow width so Text gets the space */}
-              <TableCell sx={{ ...headerCellSx, width: 160 }}>
+              <TableCell scope="col" sx={{ ...headerCellSx, width: 160 }}>
                 <TableSortLabel
                   active={titleSort !== null}
                   direction={titleSort ?? "asc"}
@@ -160,23 +160,25 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 </TableSortLabel>
               </TableCell>
               {showCountry && (
-                <TableCell sx={{ ...headerCellSx, width: 140 }}>
+                <TableCell scope="col" sx={{ ...headerCellSx, width: 140 }}>
                   Country
                 </TableCell>
               )}
               {/* Tag and Created columns are slightly narrower in section mode */}
               <TableCell
+                scope="col"
                 sx={{ ...headerCellSx, width: showCountry ? 180 : 160 }}
               >
                 Tags
               </TableCell>
-              <TableCell sx={headerCellSx}>Text</TableCell>
+              <TableCell scope="col" sx={headerCellSx}>Text</TableCell>
               <TableCell
+                scope="col"
                 sx={{ ...headerCellSx, width: showCountry ? 120 : 110 }}
               >
                 Created
               </TableCell>
-              <TableCell sx={{ ...headerCellSx, width: showCountry ? 90 : 80 }}>
+              <TableCell scope="col" sx={{ ...headerCellSx, width: showCountry ? 90 : 80 }}>
                 Actions
               </TableCell>
             </TableRow>
@@ -188,6 +190,9 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 data-testid="notes-table-row"
                 data-id={note.id}
                 onClick={() => onEdit(note, note.id)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(note, note.id); } }}
+                tabIndex={0}
+                aria-label={`Edit note: ${note.title || "Untitled"}`}
                 sx={rowSx}
               >
                 <TableCell>{note.title || "(untitled)"}</TableCell>
@@ -227,7 +232,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
                     <IconButton
                       size="small"
                       onClick={() => onEdit(note, note.id)}
-                      title="Edit"
+                      aria-label={`Edit note: ${note.title || "Untitled"}`}
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
@@ -240,7 +245,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
                         e.stopPropagation();
                         onDelete(note.id);
                       }}
-                      title="Delete"
+                      aria-label={`Delete note: ${note.title || "Untitled"}`}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>

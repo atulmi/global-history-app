@@ -159,6 +159,7 @@ const Notes: React.FC<NotesProps> = ({
         onNavigateToAllNotes={() => navigate("/all-notes")}
       />
       <Box
+        component="main"
         sx={{ flexGrow: 1, overflow: "hidden", display: "flex", width: "100%" }}
       >
         <Grid
@@ -194,17 +195,17 @@ const Notes: React.FC<NotesProps> = ({
                 </Typography>
                 <Box>
                   <Tooltip title="Zoom in">
-                    <IconButton size="small" onClick={() => setMapZoom((z) => Math.min(z + 0.5, 8))}>
+                    <IconButton size="small" onClick={() => setMapZoom((z) => Math.min(z + 0.5, 8))} aria-label="Zoom in">
                       <ZoomInIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Zoom out">
-                    <IconButton size="small" onClick={() => setMapZoom((z) => Math.max(z - 0.5, 1))}>
+                    <IconButton size="small" onClick={() => setMapZoom((z) => Math.max(z - 0.5, 1))} aria-label="Zoom out">
                       <ZoomOutIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Reset view">
-                    <IconButton size="small" onClick={handleResetMap}>
+                    <IconButton size="small" onClick={handleResetMap} aria-label="Reset map view">
                       <CenterFocusStrongIcon />
                     </IconButton>
                   </Tooltip>

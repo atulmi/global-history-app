@@ -174,6 +174,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
       />
 
       <Container
+        component="main"
         maxWidth="xl"
         sx={{
           paddingTop: "20px",
@@ -185,7 +186,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         }}
       >
         <Typography variant="h6" sx={{ mb: 3 }} fontWeight={600}>
-          📚 All Notes ({filteredNotes.length})
+          📚 All Notes ({notes.length})
         </Typography>
 
         <FilterControls
@@ -201,6 +202,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           onSearchChange={setSearchTerm}
           onResetFilters={handleResetFilters}
           showResetButton={showResetButton}
+          displayedCount={countrySectionCount === 0 ? filteredNotes.length : undefined}
           countryFilters={countryFilters}
           setCountryFilters={setCountryFilters}
         />

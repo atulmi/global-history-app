@@ -48,11 +48,11 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <AppBar position="static" data-testid="navbar"
+    <AppBar component="header" position="static" data-testid="navbar"
       sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", boxShadow: "none", margin: 0 }}>
       <Toolbar>
         {onNavigateBack && (
-          <IconButton edge="start" color="inherit" onClick={onNavigateBack} sx={{ marginRight: 2 }}>
+          <IconButton edge="start" color="inherit" onClick={onNavigateBack} sx={{ marginRight: 2 }} aria-label="Go back">
             <ArrowBackIcon />
           </IconButton>
         )}
@@ -73,11 +73,18 @@ const Navbar: React.FC<NavbarProps> = ({
         {isMobile ? (
           <>
             <Tooltip title="Menu">
-              <IconButton color="inherit" onClick={(e) => setMenuAnchor(e.currentTarget)}>
+              <IconButton
+                color="inherit"
+                onClick={(e) => setMenuAnchor(e.currentTarget)}
+                aria-label="Open navigation menu"
+                aria-haspopup="true"
+                aria-expanded={menuOpen}
+                aria-controls="nav-menu"
+              >
                 <MenuIcon />
               </IconButton>
             </Tooltip>
-            <Menu anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)}>
+            <Menu id="nav-menu" anchorEl={menuAnchor} open={menuOpen} onClose={() => setMenuAnchor(null)}>
               <MenuItem onClick={() => { onAddNote(); setMenuAnchor(null); }}>
                 <AddIcon fontSize="small" sx={{ mr: 1 }} /> Add Note
               </MenuItem>

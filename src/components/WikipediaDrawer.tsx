@@ -51,6 +51,8 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
       open={open}
       onClose={onClose}
       data-testid="wikipedia-drawer"
+      aria-label="Wikipedia article viewer"
+      slotProps={{ paper: { role: "dialog", "aria-modal": "true" } }}
       sx={{
         "& .MuiDrawer-paper": {
           width: { xs: "100%", sm: "500px" },
@@ -71,13 +73,15 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
         >
           {article ? article.title : `Loading article on ${selectedCountry}...`}
         </Typography>
-        <IconButton onClick={onClose} data-testid="btn-drawer-close">
+        <IconButton onClick={onClose} data-testid="btn-drawer-close" aria-label="Close article viewer">
           <CloseIcon />
         </IconButton>
       </Box>
 
       {loading && (
         <Box
+          role="status"
+          aria-label="Loading article"
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -118,6 +122,7 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
                 color="warning"
                 size="small"
                 data-testid="btn-drawer-reload"
+                aria-label={`Load new article for ${selectedCountry ?? "selected country"}`}
                 sx={{
                   cursor: "pointer",
                   "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.04)" },
@@ -132,6 +137,7 @@ const WikipediaDrawer: React.FC<WikipediaDrawerProps> = ({
             value={articleText}
             onChange={(e) => onArticleTextChange(e.target.value)}
             data-testid="drawer-article-text"
+            aria-label="Article text, editable"
             sx={{
               marginBottom: 2,
               flexGrow: 1,

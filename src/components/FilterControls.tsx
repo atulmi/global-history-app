@@ -8,6 +8,7 @@ import {
   MenuItem,
   Divider,
   TextField,
+  Typography,
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import { TAG_CATEGORIES, COUNTRIES } from "../data/countries";
@@ -40,6 +41,7 @@ type FilterControlsProps = {
   onSearchChange: (term: string) => void;
   onResetFilters: () => void;
   showResetButton: boolean;
+  displayedCount?: number;
   // Country values for the split-view columns
   countryFilters: [string, string];
   setCountryFilters: (filters: [string, string]) => void;
@@ -58,6 +60,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   onSearchChange,
   onResetFilters,
   showResetButton,
+  displayedCount,
   countryFilters,
   setCountryFilters,
 }) => {
@@ -71,7 +74,7 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   };
 
   return (
-    <Box data-testid="filter-controls" sx={{ mb: 4 }}>
+    <Box data-testid="filter-controls" role="group" aria-label="Filter and sort controls" sx={{ mb: 4 }}>
       <Box
         sx={{
           display: "flex",
@@ -200,18 +203,25 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           }}
         />
 
-        {/* Reset Filters pushed to the far right */}
-        {showResetButton && (
-          <Button
-            variant="contained"
-            size="small"
-            onClick={onResetFilters}
-            data-testid="btn-reset-filters"
-            sx={{ marginLeft: "auto" }}
-          >
-            Reset Filters
-          </Button>
-        )}
+        {/* Count + reset button pushed to the far right */}
+        <Box sx={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 1.5 }}>
+          {displayedCount !== undefined && (
+            <Typography variant="body2" color="text.secondary" data-testid="filter-displayed-count">
+              {displayedCount} {displayedCount === 1 ? "note" : "notes"} shown
+            </Typography>
+          )}
+          {showResetButton && (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={onResetFilters}
+              data-testid="btn-reset-filters"
+              aria-label="Reset all filters"
+            >
+              Reset Filters
+            </Button>
+          )}
+        </Box>
       </Box>
     </Box>
   );

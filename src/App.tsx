@@ -137,6 +137,9 @@ function App(): React.JSX.Element {
   if (notesLoading) {
     return (
       <Box
+        role="status"
+        aria-live="polite"
+        aria-label="Loading notes"
         sx={{
           position: "fixed",
           inset: 0,

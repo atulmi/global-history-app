@@ -12,7 +12,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", display: "flex", flexDirection: "column" }}>
-      <AppBar position="static"
+      <AppBar component="header" position="static"
         sx={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", boxShadow: "none" }}>
         <Toolbar>
           <Typography variant="h5" fontWeight={700} letterSpacing="0.5px"
@@ -22,7 +22,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
         </Toolbar>
       </AppBar>
 
-      <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}>
+      <Box component="main" sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", p: 2 }}>
         <Box sx={{ width: "100%", maxWidth: 420 }}>
           <Link component={RouterLink} to="/" variant="body2"
             sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1.5, width: "fit-content" }}>

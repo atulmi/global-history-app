@@ -133,6 +133,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       maxWidth="md"
       fullWidth
       data-testid="note-dialog"
+      aria-labelledby="note-dialog-heading"
       slotProps={{
         paper: {
           sx: {
@@ -166,6 +167,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           />
         )}
         <Typography
+          id="note-dialog-heading"
           variant="h6"
           fontWeight={700}
           sx={{ color: "#fff", letterSpacing: 0.2, flex: 1 }}
@@ -175,6 +177,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
         <IconButton
           onClick={handleClose}
           size="small"
+          aria-label="Close dialog"
           sx={{
             color: "rgba(255,255,255,0.8)",
             "&:hover": {

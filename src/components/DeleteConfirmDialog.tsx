@@ -23,6 +23,8 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       maxWidth="xs"
       fullWidth
       data-testid="delete-confirm-dialog"
+      aria-labelledby="delete-dialog-heading"
+      aria-describedby="delete-dialog-body"
       slotProps={{
         paper: {
           sx: {
@@ -47,6 +49,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       >
         <DeleteOutlineIcon sx={{ color: "rgba(255,255,255,0.9)", fontSize: 22 }} />
         <Typography
+          id="delete-dialog-heading"
           variant="subtitle1"
           fontWeight={700}
           sx={{ color: "#fff", letterSpacing: 0.2 }}
@@ -57,7 +60,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
 
       {/* Body */}
       <Box sx={{ px: 3, pt: 2.5, pb: 1, backgroundColor: "#fdfdff" }}>
-        <Typography variant="body2" sx={{ color: "#555", lineHeight: 1.7 }}>
+        <Typography id="delete-dialog-body" variant="body2" sx={{ color: "#555", lineHeight: 1.7 }}>
           Are you sure you want to delete this note? This action cannot be
           undone.
         </Typography>

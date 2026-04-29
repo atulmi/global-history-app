@@ -43,6 +43,9 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
 
   return (
     <Paper
+      component="aside"
+      role="complementary"
+      aria-label="Recent notes sidebar"
       data-testid="sidebar"
       sx={{
         padding: "20px",
@@ -149,6 +152,9 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
                     cursor: "pointer",
                     textDecoration: "underline",
                   }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onViewAll(); } }}
                 >
                   All Notes
                 </Box>{" "}

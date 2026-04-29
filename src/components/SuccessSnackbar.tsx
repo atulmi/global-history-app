@@ -19,6 +19,8 @@ const SuccessSnackbar: React.FC<SuccessSnackbarProps> = ({
       onClose={onClose}
       anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       data-testid="success-snackbar"
+      aria-live="polite"
+      aria-atomic="true"
     >
       <Alert
         onClose={onClose}
