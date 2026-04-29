@@ -23,6 +23,7 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
+  Chip,
   IconButton,
   Table,
   TableBody,
@@ -42,6 +43,16 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import { type Note } from "../types/Note";
 
+const PURPLE = "#667eea";
+const PURPLE_DARK = "#764ba2";
+
+// Near-black navy — maximum contrast header, no ambiguity about where data starts
+const HEADER_BG = "#1a1a2e";
+// Clearly visible row divider — GitHub uses #d0d7de, we use a purple-tinted equivalent
+const ROW_BORDER = "#c4c9e0";
+// Even rows: noticeably off-white so alternation is readable without hovering
+const ROW_EVEN_BG = "#eef0f9";
+
 type NotesTableProps = {
   /** The already-filtered and sorted notes to display. */
   notes: Note[];
@@ -53,30 +64,53 @@ type NotesTableProps = {
   sx?: SxProps<Theme>;
 };
 
-// Applied to every header cell — gray background matches the section-box style.
 const headerCellSx = {
-  fontWeight: 600,
-  background: "gray",
-  color: "white",
+  fontWeight: 700,
+  fontSize: "0.68rem",
+  letterSpacing: "0.08em",
+  textTransform: "uppercase" as const,
+  // Near-black gives maximum contrast — white text passes WCAG AAA
+  backgroundColor: HEADER_BG,
+  color: "#ffffff",
+  // A thin purple accent line separates header from body
+  borderBottom: `3px solid ${PURPLE}`,
+  py: 1.75,
+  whiteSpace: "nowrap" as const,
 };
 
-// TableSortLabel renders dark by default; override to white for the gray header.
 const sortLabelSx = {
-  color: "white !important",
-  "& .MuiTableSortLabel-icon": { color: "white !important" },
-  "&:hover": { color: "white !important" },
+  color: "#ffffff !important",
+  "& .MuiTableSortLabel-icon": { color: "rgba(255,255,255,0.7) !important" },
+  "&:hover": { color: "rgba(255,255,255,0.85) !important" },
+  "&.Mui-active": { color: "#ffffff !important" },
 };
 
-// Row base style + hover effect that mirrors the navbar gradient.
 const rowSx = {
   cursor: "pointer",
-  backgroundColor: "white",
+  transition: "background 0.12s ease",
+  "&:nth-of-type(odd)": { backgroundColor: "#ffffff" },
+  "&:nth-of-type(even)": { backgroundColor: ROW_EVEN_BG },
+  "& .MuiTableCell-root": {
+    // Solid, clearly-visible divider line between every row
+    borderBottom: `1px solid ${ROW_BORDER}`,
+    py: 1.4,
+    px: 1.5,
+  },
+  "&:last-child .MuiTableCell-root": { borderBottom: "none" },
   "&:hover": {
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    // Both text and icon colours must be overridden explicitly because MUI
-    // scopes TableCell and SvgIcon colours with higher-specificity defaults.
-    "& .MuiTableCell-root": { color: "white" },
-    "& .MuiSvgIcon-root": { color: "white" },
+    background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`,
+    "& .MuiTableCell-root": {
+      color: "#ffffff",
+      borderBottom: "1px solid rgba(255,255,255,0.15)",
+    },
+    "& .MuiSvgIcon-root": { color: "#ffffff" },
+    "& .MuiChip-root": {
+      backgroundColor: "rgba(255,255,255,0.18)",
+      borderColor: "rgba(255,255,255,0.5)",
+    },
+    "& .MuiChip-label": { color: "#ffffff" },
+    "& .note-title": { color: "#ffffff" },
+    "& .note-untitled": { color: "rgba(255,255,255,0.6)" },
   },
 };
 
@@ -87,22 +121,16 @@ const NotesTable: React.FC<NotesTableProps> = ({
   onDelete,
   sx,
 }) => {
-  // Shorten the preview in section mode to fit narrower columns.
   const textPreviewLength = showCountry ? 150 : 120;
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
-
-  // null = natural order (parent's date sort); "asc"/"desc" = title sort active.
   const [titleSort, setTitleSort] = useState<"asc" | "desc" | null>(null);
 
-  // Any time the note list changes (filter/search/sort), jump back to page 1
-  // so the user never lands on an empty page.
   useEffect(() => {
     setPage(0);
   }, [notes]);
 
-  // Cycles: natural → asc → desc → natural.
   const handleTitleSortClick = () => {
     setTitleSort((prev) => {
       if (prev === null) return "asc";
@@ -111,7 +139,6 @@ const NotesTable: React.FC<NotesTableProps> = ({
     });
   };
 
-  // When titleSort is null, preserve the parent-provided (date) order.
   const sortedNotes = titleSort
     ? [...notes].sort((a, b) => {
         const aTitle = (a.title || "").toLowerCase();
@@ -122,30 +149,32 @@ const NotesTable: React.FC<NotesTableProps> = ({
       })
     : notes;
 
-  // Slice the sorted list down to just the current page's rows.
   const pagedNotes = sortedNotes.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage,
   );
 
   return (
-    // Outer Box is a flex column so the pagination bar stays pinned at the
-    // bottom while only the TableContainer scrolls above it.
-    <Box sx={{ display: "flex", flexDirection: "column", ...sx }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        borderRadius: "12px",
+        overflow: "hidden",
+        // Layered shadow: tight contact shadow for grounding + ambient depth layer
+        boxShadow:
+          "0 1px 2px rgba(0,0,0,0.25), 0 4px 12px rgba(0,0,0,0.18), 0 8px 24px rgba(102,126,234,0.12)",
+        border: `1px solid ${ROW_BORDER}`,
+        ...sx,
+      }}
+    >
       <TableContainer
         data-testid="notes-table"
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          borderLeft: "1px solid black",
-          borderRight: "1px solid black",
-          borderBottom: "1px solid black",
-        }}
+        sx={{ flex: 1, overflow: "auto" }}
       >
         <Table size="small" stickyHeader aria-label="Notes">
           <TableHead>
             <TableRow>
-              {/* Title — sortable, fixed narrow width so Text gets the space */}
               <TableCell scope="col" sx={{ ...headerCellSx, width: 160 }}>
                 <TableSortLabel
                   active={titleSort !== null}
@@ -159,26 +188,30 @@ const NotesTable: React.FC<NotesTableProps> = ({
                   Title
                 </TableSortLabel>
               </TableCell>
+              <TableCell scope="col" sx={headerCellSx}>
+                Preview
+              </TableCell>
               {showCountry && (
                 <TableCell scope="col" sx={{ ...headerCellSx, width: 140 }}>
                   Country
                 </TableCell>
               )}
-              {/* Tag and Created columns are slightly narrower in section mode */}
               <TableCell
                 scope="col"
                 sx={{ ...headerCellSx, width: showCountry ? 180 : 160 }}
               >
                 Tags
               </TableCell>
-              <TableCell scope="col" sx={headerCellSx}>Text</TableCell>
               <TableCell
                 scope="col"
-                sx={{ ...headerCellSx, width: showCountry ? 120 : 110 }}
+                sx={{ ...headerCellSx, width: showCountry ? 110 : 100 }}
               >
                 Created
               </TableCell>
-              <TableCell scope="col" sx={{ ...headerCellSx, width: showCountry ? 90 : 80 }}>
+              <TableCell
+                scope="col"
+                sx={{ ...headerCellSx, width: showCountry ? 90 : 80 }}
+              >
                 Actions
               </TableCell>
             </TableRow>
@@ -190,14 +223,38 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 data-testid="notes-table-row"
                 data-id={note.id}
                 onClick={() => onEdit(note, note.id)}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onEdit(note, note.id); } }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onEdit(note, note.id);
+                  }
+                }}
                 tabIndex={0}
                 aria-label={`Edit note: ${note.title || "Untitled"}`}
                 sx={rowSx}
               >
-                <TableCell>{note.title || "(untitled)"}</TableCell>
-                {showCountry && <TableCell>{note.country || ""}</TableCell>}
-                <TableCell>{note.tags.join(", ")}</TableCell>
+                {/* Title */}
+                <TableCell>
+                  {note.title ? (
+                    <Box
+                      className="note-title"
+                      component="span"
+                      sx={{ fontWeight: 700, color: "#111827", fontSize: "0.85rem" }}
+                    >
+                      {note.title}
+                    </Box>
+                  ) : (
+                    <Box
+                      className="note-untitled"
+                      component="span"
+                      sx={{ fontStyle: "italic", color: "#9ca3af", fontSize: "0.82rem" }}
+                    >
+                      (untitled)
+                    </Box>
+                  )}
+                </TableCell>
+
+                {/* Text preview */}
                 <Tooltip
                   title={
                     <Box
@@ -211,9 +268,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
                     </Box>
                   }
                   arrow
-                  slotProps={{
-                    tooltip: { sx: { maxWidth: 400, p: 1.5 } },
-                  }}
+                  slotProps={{ tooltip: { sx: { maxWidth: 400, p: 1.5 } } }}
                 >
                   <TableCell
                     sx={{
@@ -221,23 +276,85 @@ const NotesTable: React.FC<NotesTableProps> = ({
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
+                      fontSize: "0.82rem",
+                      color: "#374151",
                     }}
                   >
-                    {note.text}
+                    {note.text.substring(0, textPreviewLength)}
                   </TableCell>
                 </Tooltip>
-                <TableCell>{note.createdAt.toLocaleDateString()}</TableCell>
+
+                {/* Country */}
+                {showCountry && (
+                  <TableCell sx={{ fontSize: "0.82rem", color: "#374151", fontWeight: 500 }}>
+                    {note.country || ""}
+                  </TableCell>
+                )}
+
+                {/* Tags */}
                 <TableCell>
-                  <Box sx={{ display: "flex", gap: 0.5 }}>
+                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                    {note.tags.length > 0 ? (
+                      note.tags.map((tag) => (
+                        <Chip
+                          key={tag}
+                          label={tag}
+                          size="small"
+                          sx={{
+                            fontSize: "0.65rem",
+                            height: 20,
+                            backgroundColor: "#ede9f7",
+                            color: "#5b21b6",
+                            fontWeight: 600,
+                            border: "none",
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <Box
+                        component="span"
+                        sx={{
+                          color: "#ccc",
+                          fontSize: "0.78rem",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        —
+                      </Box>
+                    )}
+                  </Box>
+                </TableCell>
+
+                {/* Created date */}
+                <TableCell
+                  sx={{
+                    fontSize: "0.78rem",
+                    color: "#6b7280",
+                    whiteSpace: "nowrap",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {note.createdAt.toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </TableCell>
+
+                {/* Actions */}
+                <TableCell>
+                  <Box sx={{ display: "flex", gap: 0.25 }}>
                     <IconButton
                       size="small"
                       onClick={() => onEdit(note, note.id)}
                       aria-label={`Edit note: ${note.title || "Untitled"}`}
+                      sx={{
+                        color: PURPLE,
+                        "&:hover": { backgroundColor: `${PURPLE}18` },
+                      }}
                     >
-                      <EditIcon fontSize="small" />
+                      <EditIcon sx={{ fontSize: 16 }} />
                     </IconButton>
-                    {/* stopPropagation prevents the row's onClick (edit) from
-                        also firing when the delete button is clicked. */}
                     <IconButton
                       size="small"
                       data-testid="btn-delete-note"
@@ -246,8 +363,12 @@ const NotesTable: React.FC<NotesTableProps> = ({
                         onDelete(note.id);
                       }}
                       aria-label={`Delete note: ${note.title || "Untitled"}`}
+                      sx={{
+                        color: "#e53935",
+                        "&:hover": { backgroundColor: "#e5393518" },
+                      }}
                     >
-                      <DeleteIcon fontSize="small" />
+                      <DeleteIcon sx={{ fontSize: 16 }} />
                     </IconButton>
                   </Box>
                 </TableCell>
@@ -257,7 +378,6 @@ const NotesTable: React.FC<NotesTableProps> = ({
         </Table>
       </TableContainer>
 
-      {/* Pagination bar — count drives the "1–20 of N" label automatically. */}
       <TablePagination
         component="div"
         count={notes.length}
@@ -269,7 +389,17 @@ const NotesTable: React.FC<NotesTableProps> = ({
           setRowsPerPage(parseInt(e.target.value, 10));
           setPage(0);
         }}
-        sx={{ flexShrink: 0, borderTop: "1px solid rgba(0,0,0,0.12)" }}
+        sx={{
+          flexShrink: 0,
+          borderTop: `2px solid ${ROW_BORDER}`,
+          backgroundColor: "#f3f4f8",
+          "& .MuiTablePagination-toolbar": { minHeight: 44 },
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
+            fontSize: "0.78rem",
+            color: "#374151",
+            fontWeight: 500,
+          },
+        }}
       />
     </Box>
   );
