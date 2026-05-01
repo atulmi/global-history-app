@@ -258,14 +258,9 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 <Tooltip
                   title={
                     <Box
-                      sx={{
-                        maxHeight: 300,
-                        overflowY: "auto",
-                        whiteSpace: "pre-wrap",
-                      }}
-                    >
-                      {note.text}
-                    </Box>
+                      sx={{ maxHeight: 300, overflowY: "auto", "& ul,& ol": { pl: 2 } }}
+                      dangerouslySetInnerHTML={{ __html: note.text }}
+                    />
                   }
                   arrow
                   slotProps={{ tooltip: { sx: { maxWidth: 400, p: 1.5 } } }}
@@ -280,7 +275,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
                       color: "#374151",
                     }}
                   >
-                    {note.text.substring(0, textPreviewLength)}
+                    {note.text.replace(/<[^>]+>/g, "").substring(0, textPreviewLength)}
                   </TableCell>
                 </Tooltip>
 

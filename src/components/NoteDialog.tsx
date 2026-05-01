@@ -7,6 +7,7 @@ import {
   Typography,
   IconButton,
 } from "@mui/material";
+import QuillEditor from "./QuillEditor";
 import Autocomplete from "@mui/material/Autocomplete";
 import CloseIcon from "@mui/icons-material/Close";
 import NoteAddOutlinedIcon from "@mui/icons-material/NoteAddOutlined";
@@ -25,12 +26,21 @@ import TagsSelect from "./TagsSelect";
  * Both text content and country are required; the Save button is disabled and
  * an inline error is shown until both fields are filled.
  */
+type NoteInitialValues = {
+  title?: string;
+  text?: string;
+  country?: string;
+  source?: string;
+};
+
 type NoteDialogProps = {
   open: boolean;
   onClose: () => void;
   onSave: (note: Note) => void;
   note?: Note | null;
   mode: "add" | "edit";
+  /** Pre-populates the form when opening in add mode (e.g. from a Wikipedia article). */
+  initialValues?: NoteInitialValues;
 };
 
 const PURPLE = "#667eea";
@@ -63,11 +73,13 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
   onSave,
   note,
   mode,
+  initialValues,
 }) => {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [country, setCountry] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
+  const [source, setSource] = useState<string | undefined>(undefined);
   const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
@@ -76,24 +88,26 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       setText(note.text);
       setCountry(note.country || null);
       setTags(note.tags);
+      setSource(note.source);
     } else if (mode === "add") {
-      setTitle("");
-      setText("");
-      setCountry(null);
+      setTitle(initialValues?.title ?? "");
+      setText(initialValues?.text ?? "");
+      setCountry(initialValues?.country ?? null);
       setTags([]);
+      setSource(initialValues?.source);
     }
     setAttempted(false);
-  }, [note, mode, open]);
+  }, [note, mode, open, initialValues]);
+
+  const isContentEmpty = !text || text === "<p><br></p>";
 
   const handleSave = () => {
-    if (!text || !country) {
+    if (isContentEmpty || !country) {
       setAttempted(true);
       return;
     }
-    if (text && country) {
+    if (!isContentEmpty && country) {
       const now = new Date();
-
-      console.log("Note to update: ", note);
 
       const savedNote: Note = {
         id: note?.id ?? "",
@@ -105,7 +119,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
         updatedAt: now,
         isPinned: note?.isPinned || false,
         isArchived: note?.isArchived || false,
-        source: note?.source,
+        source,
       };
       onSave(savedNote);
       handleClose();
@@ -140,8 +154,6 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
             borderRadius: "18px",
             overflow: "hidden",
             maxHeight: "90vh",
-            boxShadow:
-              "0 24px 60px rgba(102, 126, 234, 0.25), 0 8px 20px rgba(0,0,0,0.12)",
           },
         },
       }}
@@ -149,7 +161,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       {/* Header */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${PURPLE_DARK} 0%, ${PURPLE} 100%)`,
+          background: "#b3b3b3",
           px: 3,
           py: 2.5,
           display: "flex",
@@ -170,7 +182,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           id="note-dialog-heading"
           variant="h6"
           fontWeight={700}
-          sx={{ color: "#fff", letterSpacing: 0.2, flex: 1 }}
+          sx={{ color: "black", letterSpacing: 0.2, flex: 1 }}
         >
           {isAdd ? "Add New Note" : "Edit Note"}
         </Typography>
@@ -204,50 +216,70 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           label="Title"
           variant="outlined"
           fullWidth
+          size="small"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Give your note a title…"
           data-testid="note-dialog-title"
-          sx={{ ...fieldSx, mb: 2.5 }}
+          sx={{ ...fieldSx, mb: 1.5 }}
         />
-        <TextField
-          label="Content"
-          variant="outlined"
-          fullWidth
-          multiline
-          rows={9}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Write your note here…"
-          data-testid="note-dialog-content"
-          required
-          error={attempted && !text}
-          helperText={attempted && !text ? "Content is required" : " "}
-          sx={{
-            ...fieldSx,
-            mb: 1,
-            "& .MuiInputBase-inputMultiline": { overflow: "auto !important" },
-          }}
-        />
-        <Autocomplete
-          options={COUNTRIES}
-          value={country}
-          onChange={(_, newValue) => setCountry(newValue)}
-          data-testid="note-dialog-country"
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Country"
-              variant="outlined"
-              required
-              error={attempted && !country}
-              helperText={attempted && !country ? "Country is required" : " "}
-              sx={fieldSx}
+        <Box sx={{ mb: 1 }}>
+          <Box
+            sx={{
+              "& .ql-toolbar.ql-snow": {
+                borderRadius: "10px 10px 0 0",
+                background: "#f0f0f0",
+              },
+              "& .ql-container.ql-snow": {
+                borderRadius: "0 0 10px 10px",
+                background: "#fff",
+                border:
+                  attempted && isContentEmpty ? "1px solid #d32f2f" : undefined,
+              },
+              "& .ql-container": { fontSize: "0.875rem", height: "170px" },
+              "& .ql-editor": { lineHeight: 1.6, overflowY: "auto" },
+            }}
+          >
+            <QuillEditor
+              value={text}
+              onChange={setText}
+              data-testid="note-dialog-content"
             />
+          </Box>
+          {attempted && isContentEmpty && (
+            <Typography
+              variant="caption"
+              color="error"
+              sx={{ ml: 1.5, mt: 0.5, display: "block" }}
+            >
+              Content is required
+            </Typography>
           )}
-          sx={{ mb: 1 }}
-        />
-        <TagsSelect value={tags} onChange={setTags} />
+        </Box>
+        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+          <Autocomplete
+            options={COUNTRIES}
+            value={country}
+            onChange={(_, newValue) => setCountry(newValue)}
+            data-testid="note-dialog-country"
+            size="small"
+            sx={{ flex: 1 }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Country"
+                variant="outlined"
+                required
+                error={attempted && !country}
+                helperText={attempted && !country ? "Country is required" : " "}
+                sx={fieldSx}
+              />
+            )}
+          />
+          <Box sx={{ flex: 1 }}>
+            <TagsSelect size="small" value={tags} onChange={setTags} />
+          </Box>
+        </Box>
       </Box>
 
       {/* Footer */}

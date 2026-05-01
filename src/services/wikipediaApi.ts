@@ -1,9 +1,51 @@
 export type WikipediaArticle = {
   title: string;
   extract: string;
+  lines: string[];
   url: string;
   country?: string;
 };
+
+const ABBREVS = new Set([
+  "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "vs",
+  "etc", "approx", "dept", "govt", "corp", "inc", "ltd", "co",
+  "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
+  "no", "vol", "fig", "pp", "op", "ed", "rev", "est", "ca", "cf",
+]);
+
+export function parseExtractLines(extract: string): string[] {
+  // Strip section headers (== Foo ==, === Bar ===, etc.) and join remaining lines
+  const text = extract
+    .split("\n")
+    .filter((l) => !/^\s*=+[^=]+=+\s*$/.test(l))
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  const sentences: string[] = [];
+  const regex = /\. /g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    const dotPos = match.index;
+    const wordBefore = text.slice(0, dotPos).split(/\s+/).pop() ?? "";
+
+    // Skip: dot-separated acronyms and initials (U.S, J.P, e.g, i.e)
+    if (/^[a-zA-Z](\.[a-zA-Z])*$/.test(wordBefore)) continue;
+
+    // Skip: known abbreviations (Dr, Mr, etc.)
+    if (ABBREVS.has(wordBefore.toLowerCase())) continue;
+
+    sentences.push(text.slice(lastIndex, dotPos + 1).trim());
+    lastIndex = dotPos + 2;
+  }
+
+  const tail = text.slice(lastIndex).trim();
+  if (tail) sentences.push(tail);
+
+  return sentences.filter((s) => s.length > 0);
+}
 
 const TOPICS = [
   "history",
@@ -187,9 +229,11 @@ export const fetchArticleContent = async (
       if (full.page?.extract) page = full.page;
     }
 
+    const extract = page.extract || "No content available";
     return {
       title: page.title,
-      extract: page.extract || "No content available",
+      extract,
+      lines: parseExtractLines(extract),
       url: page.fullurl,
       country,
     };

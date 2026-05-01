@@ -1,4 +1,4 @@
-import { Box, Container, Typography } from "@mui/material";
+import { Box, Button, Container, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
@@ -23,6 +23,7 @@ type AllNotesPageProps = {
   addNote: (note: Omit<Note, "id">) => void;
   updateNote: (id: string, note: Note) => void;
   deleteNote: (id: string) => void;
+  clearAllNotes: () => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   addDialogOpen: boolean;
@@ -34,6 +35,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   addNote,
   updateNote,
   deleteNote,
+  clearAllNotes,
   searchTerm,
   setSearchTerm,
   addDialogOpen,
@@ -47,6 +49,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const [clearAllDialogOpen, setClearAllDialogOpen] = useState(false);
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -185,9 +188,22 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           paddingBottom: "20px",
         }}
       >
-        <Typography variant="h6" sx={{ mb: 3 }} fontWeight={600}>
-          📚 All Notes ({notes.length})
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+          <Typography variant="h6" fontWeight={600}>
+            📚 All Notes ({notes.length})
+          </Typography>
+          {notes.length > 0 && (
+            <Button
+              variant="outlined"
+              size="small"
+              color="error"
+              onClick={() => setClearAllDialogOpen(true)}
+              sx={{ textTransform: "none", fontWeight: 600 }}
+            >
+              Clear All
+            </Button>
+          )}
+        </Box>
 
         <FilterControls
           filterCountry={filterCountry}
@@ -316,6 +332,13 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           setDeletingNoteId(null);
         }}
         onConfirm={confirmDeleteNote}
+      />
+      <DeleteConfirmDialog
+        open={clearAllDialogOpen}
+        onClose={() => setClearAllDialogOpen(false)}
+        onConfirm={() => { clearAllNotes(); setClearAllDialogOpen(false); }}
+        title="Clear All Notes?"
+        body="This will permanently delete all your notes. This action cannot be undone."
       />
       <SuccessSnackbar
         open={successOpen}

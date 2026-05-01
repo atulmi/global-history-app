@@ -24,6 +24,13 @@ type NotesProps = {
   onOpenAddDialog: () => void;
 };
 
+function linesToQuillHtml(lines: string[]): string {
+  const items = lines
+    .map((l) => `<li>${l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</li>`)
+    .join("");
+  return `<ul>${items}</ul>`;
+}
+
 const Notes: React.FC<NotesProps> = ({
   notes,
   addNote,
@@ -59,7 +66,6 @@ const Notes: React.FC<NotesProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerTags, setDrawerTags] = useState<string[]>([]);
 
   // Success message state
   const [successOpen, setSuccessOpen] = useState(false);
@@ -79,11 +85,10 @@ const Notes: React.FC<NotesProps> = ({
     setError(null);
     setCurrentArticle(null);
     setEditedArticleText("");
-    setDrawerTags([]);
     try {
       const article = await fetchRandomCountryHistory(countryName);
       setCurrentArticle(article);
-      setEditedArticleText(article.extract);
+      setEditedArticleText(linesToQuillHtml(article.lines));
     } catch (err) {
       setError(`Failed to fetch article for ${countryName}`);
       console.error(err);
@@ -101,7 +106,7 @@ const Notes: React.FC<NotesProps> = ({
       try {
         const article = await fetchRandomCountryHistory(selectedCountry);
         setCurrentArticle(article);
-        setEditedArticleText(article.extract);
+        setEditedArticleText(linesToQuillHtml(article.lines));
       } catch (err) {
         setError(`Failed to fetch article for ${selectedCountry}`);
         console.error(err);
@@ -111,26 +116,22 @@ const Notes: React.FC<NotesProps> = ({
     }
   };
 
-  const handleSaveArticleAsNote = () => {
+  // Save directly from the drawer without opening a modal.
+  const handleAddArticleAsNote = (noteTags: string[] = []) => {
     if (currentArticle) {
       const now = new Date();
-      const note: Omit<Note, "id"> = {
-        title: currentArticle.title,
+      addNote({
         text: editedArticleText,
-        tags: drawerTags,
+        title: currentArticle.title,
         country: currentArticle.country,
         source: currentArticle.url,
+        tags: noteTags,
         createdAt: now,
         updatedAt: now,
         isPinned: false,
         isArchived: false,
-      };
-      addNote(note);
-      setDrawerOpen(false);
-      setCurrentArticle(null);
-      setEditedArticleText("");
-      setDrawerTags([]);
-      setSuccessMessage("Note successfully saved!");
+      });
+      setSuccessMessage("Note saved!");
       setSuccessOpen(true);
     }
   };
@@ -140,7 +141,6 @@ const Notes: React.FC<NotesProps> = ({
     setCurrentArticle(null);
     setEditedArticleText("");
     setError(null);
-    setDrawerTags([]);
   };
 
   return (
@@ -236,12 +236,10 @@ const Notes: React.FC<NotesProps> = ({
         article={currentArticle}
         articleText={editedArticleText}
         onArticleTextChange={setEditedArticleText}
-        tags={drawerTags}
-        onTagsChange={setDrawerTags}
         loading={loading}
         error={error}
         onReload={handleReloadArticle}
-        onSave={handleSaveArticleAsNote}
+        onAddAsNote={(noteTags) => handleAddArticleAsNote(noteTags)}
       />
 
       <NoteDialog

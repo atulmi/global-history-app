@@ -132,6 +132,17 @@ function App(): React.JSX.Element {
     });
   };
 
+  const clearAllNotes = async () => {
+    if (isLoggedIn) {
+      await Promise.all(
+        notes.map((n) => fetch(`${API}/${n.id}`, { method: "DELETE", headers: authHeaders() })),
+      );
+    } else {
+      saveLocalNotes([]);
+    }
+    setNotes([]);
+  };
+
   const handleOpenAddDialog = () => setAddDialogOpen(true);
 
   if (notesLoading) {
@@ -182,6 +193,7 @@ function App(): React.JSX.Element {
             addNote={addNote}
             updateNote={updateNote}
             deleteNote={deleteNote}
+            clearAllNotes={clearAllNotes}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
             addDialogOpen={addDialogOpen}

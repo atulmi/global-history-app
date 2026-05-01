@@ -1,19 +1,28 @@
 # Global History App
 
-An interactive world map app that lets you explore countries through Wikipedia and build a personal collection of notes.
+An interactive world map for discovering history and culture through Wikipedia — one country at a time.
 
-Click any country on the map to pull up a random Wikipedia article about it. Save articles as notes, add your own thoughts, and tag entries to build a searchable knowledge base tied to the world map.
+The core loop is exploration: click any country on the map, read a randomly selected Wikipedia article about it, and reload for a different one. The app is designed for curiosity-driven browsing — jumping between countries, surfacing unexpected topics, and following threads wherever they lead.
+
+Notes are an optional layer on top. When something catches your attention, you can save the article (or just the parts that matter) as a note, write your own summary alongside the article, and tag it for later. Over time this builds a personal knowledge base tied to the world map — but exploring without saving anything is equally valid.
+
+---
+
+## Goal
+
+Most history and geography learning happens in structured, linear formats. This app inverts that: start anywhere on the map, follow your curiosity, and let Wikipedia's breadth do the work. The goal is to make browsing global history feel like wandering — low friction, high serendipity.
 
 ---
 
 ## Features
 
-- **Interactive world map** — click any country to get a random Wikipedia article about it
-- **Wikipedia drawer** — displays the article inline without leaving the app; reload for a different article on the same country
-- **Notes** — save a Wikipedia article directly as a note, or write your own from scratch
-- **Tags** — label notes with custom tags for easy filtering
-- **All Notes page** — browse, search, filter, and manage every note you've saved
-- **Sidebar** — quick-access panel to explore notes while staying on the map
+- **Interactive world map** — click any country to pull up a random Wikipedia article about it
+- **Wikipedia drawer** — reads the article inline without leaving the app; reload for a different article on the same country
+- **Notes panel** — optionally open a side-by-side panel to write your own summaries or extract key points while reading
+- **Save as note** — capture the full article or just your own sections into a structured note with one click
+- **Tags** — label notes with custom tags for easy filtering later
+- **All Notes page** — browse, search, filter by country or tag, and manage every note you've saved
+- **Sidebar** — quick-access panel showing recent notes while staying on the map
 
 ---
 

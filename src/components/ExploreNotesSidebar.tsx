@@ -117,14 +117,14 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
                   variant="caption"
                   sx={{
                     color: "text.secondary",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
+                    whiteSpace: "nowrap",
                     overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "block",
                     lineHeight: 1.5,
                   }}
                 >
-                  {note.text}
+                  {note.text.replace(/<[^>]+>/g, "")}
                 </Typography>
                 <Typography
                   variant="caption"

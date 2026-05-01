@@ -6,6 +6,8 @@ type DeleteConfirmDialogProps = {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  title?: string;
+  body?: string;
 };
 
 const PURPLE = "#667eea";
@@ -15,6 +17,8 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
   open,
   onClose,
   onConfirm,
+  title = "Delete Note?",
+  body = "Are you sure you want to delete this note? This action cannot be undone.",
 }) => {
   return (
     <Dialog
@@ -54,15 +58,14 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
           fontWeight={700}
           sx={{ color: "#fff", letterSpacing: 0.2 }}
         >
-          Delete Note?
+          {title}
         </Typography>
       </Box>
 
       {/* Body */}
       <Box sx={{ px: 3, pt: 2.5, pb: 1, backgroundColor: "#fdfdff" }}>
         <Typography id="delete-dialog-body" variant="body2" sx={{ color: "#555", lineHeight: 1.7 }}>
-          Are you sure you want to delete this note? This action cannot be
-          undone.
+          {body}
         </Typography>
       </Box>
 

@@ -13,15 +13,17 @@ import { TAG_CATEGORIES } from "../data/countries";
 type TagsSelectProps = {
   value: string[];
   onChange: (tags: string[]) => void;
+  size?: "small" | "medium";
   sx?: object;
 };
 
-const TagsSelect: React.FC<TagsSelectProps> = ({ value, onChange, sx }) => {
+const TagsSelect: React.FC<TagsSelectProps> = ({ value, onChange, size = "medium", sx }) => {
   const [open, setOpen] = useState(false);
 
   return (
     <FormControl
       fullWidth
+      size={size}
       data-testid="tags-select"
       sx={{
         "& .MuiOutlinedInput-root": {
@@ -31,7 +33,7 @@ const TagsSelect: React.FC<TagsSelectProps> = ({ value, onChange, sx }) => {
         ...sx,
       }}
     >
-      <InputLabel>Tags</InputLabel>
+      <InputLabel size={size === "small" ? "small" : undefined}>Tags</InputLabel>
       <Select
         multiple
         open={open}
