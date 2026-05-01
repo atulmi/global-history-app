@@ -30,14 +30,8 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       aria-labelledby="delete-dialog-heading"
       aria-describedby="delete-dialog-body"
       slotProps={{
-        paper: {
-          sx: {
-            borderRadius: "18px",
-            overflow: "hidden",
-            boxShadow:
-              "0 24px 60px rgba(229, 57, 53, 0.15), 0 8px 20px rgba(0,0,0,0.1)",
-          },
-        },
+        paper: { sx: { borderRadius: "18px", overflow: "hidden", boxShadow: "0 24px 60px rgba(229, 57, 53, 0.15), 0 8px 20px rgba(0,0,0,0.1)" } },
+        backdrop: { sx: { backgroundColor: "rgba(0,0,0,0.75)" } },
       }}
     >
       {/* Header */}

@@ -12,6 +12,7 @@ import WikipediaDrawer from "./components/WikipediaDrawer";
 import ExploreNotesSidebar from "./components/ExploreNotesSidebar";
 import {
   fetchRandomCountryHistory,
+  fetchArticleContent,
   type WikipediaArticle,
 } from "./services/wikipediaApi";
 import { type Note } from "./types/Note";
@@ -136,6 +137,23 @@ const Notes: React.FC<NotesProps> = ({
     }
   };
 
+  const handleLoadArticleByTitle = async (title: string) => {
+    setLoading(true);
+    setError(null);
+    setCurrentArticle(null);
+    setEditedArticleText("");
+    try {
+      const article = await fetchArticleContent(title, selectedCountry ?? undefined);
+      setCurrentArticle(article);
+      setEditedArticleText(linesToQuillHtml(article.lines));
+    } catch (err) {
+      setError(`Failed to fetch article: ${title}`);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
     setCurrentArticle(null);
@@ -240,6 +258,7 @@ const Notes: React.FC<NotesProps> = ({
         error={error}
         onReload={handleReloadArticle}
         onAddAsNote={(noteTags) => handleAddArticleAsNote(noteTags)}
+        onLoadArticle={handleLoadArticleByTitle}
       />
 
       <NoteDialog

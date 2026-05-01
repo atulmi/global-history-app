@@ -2,6 +2,7 @@ export type WikipediaArticle = {
   title: string;
   extract: string;
   lines: string[];
+  links: string[];
   url: string;
   country?: string;
 };
@@ -213,12 +214,32 @@ async function fetchExtract(
  * characters, fetches up to 5000 characters of the full article body so
  * that stubs and short intros still have enough content to display.
  */
+async function fetchArticleLinks(title: string): Promise<string[]> {
+  const url =
+    `https://en.wikipedia.org/w/api.php?` +
+    `action=query&` +
+    `titles=${encodeURIComponent(title)}&` +
+    `prop=links&` +
+    `plnamespace=0&` +
+    `pllimit=100&` +
+    `format=json&` +
+    `origin=*`;
+  const res = await fetch(url);
+  const data = await res.json();
+  const pages = data.query.pages;
+  const page = pages[Object.keys(pages)[0]];
+  return (page?.links ?? []).map((l: { title: string }) => l.title);
+}
+
 export const fetchArticleContent = async (
   title: string,
   country?: string,
 ): Promise<WikipediaArticle> => {
   try {
-    let { page } = await fetchExtract(title, true);
+    let [{ page }, links] = await Promise.all([
+      fetchExtract(title, true),
+      fetchArticleLinks(title),
+    ]);
 
     if (!page || page.missing) {
       throw new Error(`Article not found: ${title}`);
@@ -234,6 +255,7 @@ export const fetchArticleContent = async (
       title: page.title,
       extract,
       lines: parseExtractLines(extract),
+      links,
       url: page.fullurl,
       country,
     };

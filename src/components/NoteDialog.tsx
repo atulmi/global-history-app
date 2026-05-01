@@ -149,13 +149,8 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       data-testid="note-dialog"
       aria-labelledby="note-dialog-heading"
       slotProps={{
-        paper: {
-          sx: {
-            borderRadius: "18px",
-            overflow: "hidden",
-            maxHeight: "90vh",
-          },
-        },
+        paper: { sx: { borderRadius: "18px", overflow: "hidden", maxHeight: "90vh" } },
+        backdrop: { sx: { backgroundColor: "rgba(0,0,0,0.75)" } },
       }}
     >
       {/* Header */}
@@ -223,7 +218,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           data-testid="note-dialog-title"
           sx={{ ...fieldSx, mb: 1.5 }}
         />
-        <Box sx={{ mb: 1 }}>
+        <Box sx={{ mb: 1, mt: 1 }}>
           <Box
             sx={{
               "& .ql-toolbar.ql-snow": {
@@ -256,7 +251,14 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
             </Typography>
           )}
         </Box>
-        <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1.5,
+            alignItems: "flex-start",
+            mt: 3,
+          }}
+        >
           <Autocomplete
             options={COUNTRIES}
             value={country}

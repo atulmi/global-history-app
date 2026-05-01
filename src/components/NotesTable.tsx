@@ -33,7 +33,6 @@ import {
   TablePagination,
   TableRow,
   TableSortLabel,
-  Tooltip,
   type SxProps,
   type Theme,
 } from "@mui/material";
@@ -69,12 +68,10 @@ const headerCellSx = {
   fontSize: "0.68rem",
   letterSpacing: "0.08em",
   textTransform: "uppercase" as const,
-  // Near-black gives maximum contrast — white text passes WCAG AAA
   backgroundColor: HEADER_BG,
   color: "#ffffff",
-  // A thin purple accent line separates header from body
   borderBottom: `3px solid ${PURPLE}`,
-  py: 1.75,
+  py: 1,
   whiteSpace: "nowrap" as const,
 };
 
@@ -91,10 +88,9 @@ const rowSx = {
   "&:nth-of-type(odd)": { backgroundColor: "#ffffff" },
   "&:nth-of-type(even)": { backgroundColor: ROW_EVEN_BG },
   "& .MuiTableCell-root": {
-    // Solid, clearly-visible divider line between every row
     borderBottom: `1px solid ${ROW_BORDER}`,
-    py: 1.4,
-    px: 1.5,
+    py: 0.6,
+    px: 1.25,
   },
   "&:last-child .MuiTableCell-root": { borderBottom: "none" },
   "&:hover": {
@@ -239,7 +235,11 @@ const NotesTable: React.FC<NotesTableProps> = ({
                     <Box
                       className="note-title"
                       component="span"
-                      sx={{ fontWeight: 700, color: "#111827", fontSize: "0.85rem" }}
+                      sx={{
+                        fontWeight: 700,
+                        color: "#111827",
+                        fontSize: "0.85rem",
+                      }}
                     >
                       {note.title}
                     </Box>
@@ -247,7 +247,11 @@ const NotesTable: React.FC<NotesTableProps> = ({
                     <Box
                       className="note-untitled"
                       component="span"
-                      sx={{ fontStyle: "italic", color: "#9ca3af", fontSize: "0.82rem" }}
+                      sx={{
+                        fontStyle: "italic",
+                        color: "#9ca3af",
+                        fontSize: "0.82rem",
+                      }}
                     >
                       (untitled)
                     </Box>
@@ -255,33 +259,30 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 </TableCell>
 
                 {/* Text preview */}
-                <Tooltip
-                  title={
-                    <Box
-                      sx={{ maxHeight: 300, overflowY: "auto", "& ul,& ol": { pl: 2 } }}
-                      dangerouslySetInnerHTML={{ __html: note.text }}
-                    />
-                  }
-                  arrow
-                  slotProps={{ tooltip: { sx: { maxWidth: 400, p: 1.5 } } }}
+                <TableCell
+                  sx={{
+                    maxWidth: "100px",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    fontSize: "0.82rem",
+                    color: "#374151",
+                  }}
                 >
-                  <TableCell
-                    sx={{
-                      maxWidth: "100px",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      fontSize: "0.82rem",
-                      color: "#374151",
-                    }}
-                  >
-                    {note.text.replace(/<[^>]+>/g, "").substring(0, textPreviewLength)}
-                  </TableCell>
-                </Tooltip>
+                  {note.text
+                    .replace(/<[^>]+>/g, "")
+                    .substring(0, textPreviewLength)}
+                </TableCell>
 
                 {/* Country */}
                 {showCountry && (
-                  <TableCell sx={{ fontSize: "0.82rem", color: "#374151", fontWeight: 500 }}>
+                  <TableCell
+                    sx={{
+                      fontSize: "0.82rem",
+                      color: "#374151",
+                      fontWeight: 500,
+                    }}
+                  >
                     {note.country || ""}
                   </TableCell>
                 )}
@@ -389,11 +390,12 @@ const NotesTable: React.FC<NotesTableProps> = ({
           borderTop: `2px solid ${ROW_BORDER}`,
           backgroundColor: "#f3f4f8",
           "& .MuiTablePagination-toolbar": { minHeight: 44 },
-          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
-            fontSize: "0.78rem",
-            color: "#374151",
-            fontWeight: 500,
-          },
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+            {
+              fontSize: "0.78rem",
+              color: "#374151",
+              fontWeight: 500,
+            },
         }}
       />
     </Box>
