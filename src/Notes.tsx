@@ -179,7 +179,7 @@ const Notes: React.FC<NotesProps> = ({
       />
       <Box
         component="main"
-        sx={{ flexGrow: 1, display: "flex", width: "100%" }}
+        sx={{ flexGrow: 1, overflow: "hidden", display: "flex", width: "100%", minHeight: 500 }}
       >
         <Grid
           container

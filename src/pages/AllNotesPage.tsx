@@ -458,6 +458,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         }}
         title="Clear All Notes?"
         body="This will permanently delete all your notes. This action cannot be undone."
+        confirmText="clearallnotes"
       />
       <SuccessSnackbar
         open={successOpen}
