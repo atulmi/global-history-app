@@ -44,8 +44,7 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <AuthLayout>
-      <Typography variant="h5" fontWeight={700} mb={1}>Reset password</Typography>
+    <AuthLayout title="Reset password">
       <Typography variant="body2" color="text.secondary" mb={3}>
         Enter your email and we'll send you a link to reset your password.
       </Typography>
@@ -70,7 +69,7 @@ const ForgotPasswordPage: React.FC = () => {
 
       <Link component={RouterLink} to="/login" variant="body2"
         sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 1 }}>
-        <ArrowBackIcon fontSize="small" /> Back to sign in
+        <ArrowBackIcon fontSize="small" /> Back to login page
       </Link>
     </AuthLayout>
   );

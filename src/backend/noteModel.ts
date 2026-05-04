@@ -46,7 +46,7 @@ const noteSchema = new Schema<NoteDocument>(
   },
 );
 
-// Compound index used by the "filter by tag" feature on the All Notes page.
+// Compound index used by the "filter by tag" feature on the My Notes page.
 noteSchema.index({ tags: 1 });
 
 export const NoteModel = model<NoteDocument>("Note", noteSchema);

@@ -1,6 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Typography, TextField, Button, Link, Divider, Alert, Box } from "@mui/material";
+import {
+  Typography,
+  TextField,
+  Button,
+  Link,
+  Divider,
+  Alert,
+  Box,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useAuth } from "../context/AuthContext";
 import AuthLayout from "../components/AuthLayout";
 
@@ -13,9 +25,13 @@ const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
     const e: typeof fieldErrors = {};
@@ -29,7 +45,10 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setServerError("");
     const errs = validate();
-    if (Object.keys(errs).length) { setFieldErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -39,7 +58,10 @@ const LoginPage: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      if (!res.ok) { setServerError(data.message ?? "Login failed"); return; }
+      if (!res.ok) {
+        setServerError(data.message ?? "Login failed");
+        return;
+      }
       login(data.token, data.user);
       navigate("/");
     } catch {
@@ -50,25 +72,73 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <AuthLayout>
-      <Typography variant="h5" fontWeight={700} mb={3}>Sign in</Typography>
-
-      {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
+    <AuthLayout title="Login to your account">
+      {serverError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {serverError}
+        </Alert>
+      )}
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
-        <TextField label="Email" type="email" fullWidth margin="normal"
-          value={email} onChange={(e) => setEmail(e.target.value)}
-          error={!!fieldErrors.email} helperText={fieldErrors.email} />
-        <TextField label="Password" type="password" fullWidth margin="normal"
-          value={password} onChange={(e) => setPassword(e.target.value)}
-          error={!!fieldErrors.password} helperText={fieldErrors.password} />
+        <TextField
+          label="Email"
+          type="email"
+          fullWidth
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={!!fieldErrors.email}
+          helperText={fieldErrors.email}
+        />
+        <TextField
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          fullWidth
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={!!fieldErrors.password}
+          helperText={fieldErrors.password}
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setShowPassword((v) => !v)}
+                    edge="end"
+                  >
+                    {showPassword ? (
+                      <VisibilityOffIcon fontSize="small" />
+                    ) : (
+                      <VisibilityIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
 
         <Box sx={{ textAlign: "right", mt: 0.5, mb: 2 }}>
-          <Link component={RouterLink} to="/forgot-password" variant="body2">Forgot password?</Link>
+          <Link component={RouterLink} to="/forgot-password" variant="body2">
+            Forgot password?
+          </Link>
         </Box>
 
-        <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
-          sx={{ background: BG, "&:hover": { opacity: 0.9 }, fontWeight: 600, mb: 2 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          size="large"
+          disabled={loading}
+          sx={{
+            background: BG,
+            "&:hover": { opacity: 0.9 },
+            fontWeight: 600,
+            mb: 2,
+          }}
+        >
           {loading ? "Signing in…" : "Sign in"}
         </Button>
       </Box>
@@ -76,7 +146,9 @@ const LoginPage: React.FC = () => {
       <Divider sx={{ my: 1 }} />
       <Typography variant="body2" textAlign="center" mt={2}>
         Don't have an account?{" "}
-        <Link component={RouterLink} to="/register" fontWeight={600}>Register</Link>
+        <Link component={RouterLink} to="/register" fontWeight={600}>
+          Register
+        </Link>
       </Typography>
     </AuthLayout>
   );

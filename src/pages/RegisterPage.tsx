@@ -1,6 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
-import { Typography, TextField, Button, Link, Divider, Alert, Box } from "@mui/material";
+import {
+  Typography,
+  TextField,
+  Button,
+  Link,
+  Divider,
+  Alert,
+  Box,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useAuth } from "../context/AuthContext";
 import AuthLayout from "../components/AuthLayout";
 
@@ -15,9 +27,16 @@ const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{ name?: string; email?: string; password?: string; confirm?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    confirm?: string;
+  }>({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const validate = () => {
     const e: typeof fieldErrors = {};
@@ -25,7 +44,8 @@ const RegisterPage: React.FC = () => {
     if (!email) e.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(email)) e.email = "Enter a valid email";
     if (!password) e.password = "Password is required";
-    else if (password.length < 8) e.password = "Password must be at least 8 characters";
+    else if (password.length < 8)
+      e.password = "Password must be at least 8 characters";
     if (!confirm) e.confirm = "Please confirm your password";
     else if (confirm !== password) e.confirm = "Passwords do not match";
     return e;
@@ -35,7 +55,10 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setServerError("");
     const errs = validate();
-    if (Object.keys(errs).length) { setFieldErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setFieldErrors(errs);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -45,7 +68,10 @@ const RegisterPage: React.FC = () => {
         body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
-      if (!res.ok) { setServerError(data.message ?? "Registration failed"); return; }
+      if (!res.ok) {
+        setServerError(data.message ?? "Registration failed");
+        return;
+      }
       login(data.token, data.user);
       navigate("/");
     } catch {
@@ -56,27 +82,106 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <AuthLayout>
-      <Typography variant="h5" fontWeight={700} mb={3}>Create account</Typography>
-
-      {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
+    <AuthLayout title="Register for account">
+      {serverError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {serverError}
+        </Alert>
+      )}
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
-        <TextField label="Full name" fullWidth margin="normal"
-          value={name} onChange={(e) => setName(e.target.value)}
-          error={!!fieldErrors.name} helperText={fieldErrors.name} />
-        <TextField label="Email" type="email" fullWidth margin="normal"
-          value={email} onChange={(e) => setEmail(e.target.value)}
-          error={!!fieldErrors.email} helperText={fieldErrors.email} />
-        <TextField label="Password" type="password" fullWidth margin="normal"
-          value={password} onChange={(e) => setPassword(e.target.value)}
-          error={!!fieldErrors.password} helperText={fieldErrors.password ?? "Minimum 8 characters"} />
-        <TextField label="Confirm password" type="password" fullWidth margin="normal" sx={{ mb: 3 }}
-          value={confirm} onChange={(e) => setConfirm(e.target.value)}
-          error={!!fieldErrors.confirm} helperText={fieldErrors.confirm} />
+        <TextField
+          label="Full name"
+          fullWidth
+          margin="normal"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={!!fieldErrors.name}
+          helperText={fieldErrors.name}
+        />
+        <TextField
+          label="Email"
+          type="email"
+          fullWidth
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          error={!!fieldErrors.email}
+          helperText={fieldErrors.email}
+        />
+        <TextField
+          label="Password"
+          type={showPassword ? "text" : "password"}
+          fullWidth
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={!!fieldErrors.password}
+          helperText={fieldErrors.password ?? (password.length < 8 ? "Minimum 8 characters" : " ")}
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setShowPassword((v) => !v)}
+                    edge="end"
+                  >
+                    {showPassword ? (
+                      <VisibilityOffIcon fontSize="small" />
+                    ) : (
+                      <VisibilityIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+        <TextField
+          label="Confirm password"
+          type={showConfirm ? "text" : "password"}
+          fullWidth
+          margin="normal"
+          sx={{ mb: 3 }}
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          error={!!fieldErrors.confirm}
+          helperText={fieldErrors.confirm}
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setShowConfirm((v) => !v)}
+                    edge="end"
+                  >
+                    {showConfirm ? (
+                      <VisibilityOffIcon fontSize="small" />
+                    ) : (
+                      <VisibilityIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
 
-        <Button type="submit" variant="contained" fullWidth size="large" disabled={loading}
-          sx={{ background: BG, "&:hover": { opacity: 0.9 }, fontWeight: 600, mb: 2 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          size="large"
+          disabled={loading}
+          sx={{
+            background: BG,
+            "&:hover": { opacity: 0.9 },
+            fontWeight: 600,
+            mb: 2,
+          }}
+        >
           {loading ? "Creating account…" : "Create account"}
         </Button>
       </Box>
@@ -84,7 +189,9 @@ const RegisterPage: React.FC = () => {
       <Divider sx={{ my: 1 }} />
       <Typography variant="body2" textAlign="center" mt={2}>
         Already have an account?{" "}
-        <Link component={RouterLink} to="/login" fontWeight={600}>Sign in</Link>
+        <Link component={RouterLink} to="/login" fontWeight={600}>
+          Login
+        </Link>
       </Typography>
     </AuthLayout>
   );

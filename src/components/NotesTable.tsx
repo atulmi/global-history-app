@@ -95,7 +95,6 @@ const rowSx = {
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-  "&:last-child .MuiTableCell-root": { borderBottom: "none" },
   "&:hover": {
     background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DARK} 100%)`,
     "& .MuiTableCell-root": {

@@ -21,21 +21,21 @@ Most history and geography learning happens in structured, linear formats. This 
 - **Notes panel** — optionally open a side-by-side panel to write your own summaries or extract key points while reading
 - **Save as note** — capture the full article or just your own sections into a structured note with one click
 - **Tags** — label notes with custom tags for easy filtering later
-- **All Notes page** — browse, search, filter by country or tag, and manage every note you've saved
+- **My Notes page** — browse, search, filter by country or tag, and manage every note you've saved
 - **Sidebar** — quick-access panel showing recent notes while staying on the map
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, TypeScript, Vite |
-| UI | MUI (Material UI) v7 |
-| Map | react-simple-maps |
-| Backend / API | Express + Mongoose |
-| Database | MongoDB |
-| Testing | Cypress |
+| Layer         | Technology                 |
+| ------------- | -------------------------- |
+| Frontend      | React 19, TypeScript, Vite |
+| UI            | MUI (Material UI) v7       |
+| Map           | react-simple-maps          |
+| Backend / API | Express + Mongoose         |
+| Database      | MongoDB                    |
+| Testing       | Cypress                    |
 
 ---
 
@@ -58,11 +58,13 @@ npm install
 Create a `.env` file in the project root. **This file is git-ignored and should never be committed.**
 
 **Local MongoDB** (default port, no auth):
+
 ```
 MONGO_URI=mongodb://localhost:27017/global-history-app
 ```
 
 **MongoDB Atlas** (cloud):
+
 ```
 MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/global-history-app
 ```
@@ -97,16 +99,16 @@ This builds the project and serves it locally through Wrangler, matching the pro
 
 ## Available Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start the Vite dev server with hot reload |
-| `npm run server` | Start the Express + MongoDB API server on :3000 |
-| `npm run build` | Type-check and build for production |
-| `npm run preview` | Build and serve locally via Wrangler |
-| `npm run deploy` | Build and deploy to Cloudflare Pages |
-| `npm run lint` | Run ESLint |
-| `npm run cy:open` | Open the Cypress test runner |
-| `npm run cy:run` | Run Cypress tests headlessly (waits for dev server on port 5173) |
+| Script            | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `npm run dev`     | Start the Vite dev server with hot reload                        |
+| `npm run server`  | Start the Express + MongoDB API server on :3000                  |
+| `npm run build`   | Type-check and build for production                              |
+| `npm run preview` | Build and serve locally via Wrangler                             |
+| `npm run deploy`  | Build and deploy to Cloudflare Pages                             |
+| `npm run lint`    | Run ESLint                                                       |
+| `npm run cy:open` | Open the Cypress test runner                                     |
+| `npm run cy:run`  | Run Cypress tests headlessly (waits for dev server on port 5173) |
 
 ---
 

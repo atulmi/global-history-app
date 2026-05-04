@@ -30,7 +30,11 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
   const formatTimestamp = (date: Date): string => {
     const d = new Date(date);
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
     const startOfYesterday = new Date(startOfToday.getTime() - 86400000);
     if (d >= startOfToday) {
       return `Today at ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
@@ -38,7 +42,11 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
     if (d >= startOfYesterday) {
       return `Yesterday at ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
     }
-    return d.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+    return d.toLocaleDateString([], {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   return (
@@ -154,9 +162,14 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
                   }}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onViewAll(); } }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onViewAll();
+                    }
+                  }}
                 >
-                  All Notes
+                  My Notes
                 </Box>{" "}
                 — view and manage your full collection.
               </Typography>
@@ -197,7 +210,7 @@ const ExploreNotesSidebar: React.FC<ExploreNotesSidebarProps> = ({
                         textDecoration: "underline",
                       }}
                     >
-                      All Notes
+                      My Notes
                     </Box>{" "}
                     and sort by <b>Random</b> to rediscover your notes.
                   </>

@@ -3,14 +3,16 @@ import {
   Button,
   Container,
   IconButton,
+  Link,
   Tooltip,
   Typography,
 } from "@mui/material";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import TableRowsIcon from "@mui/icons-material/TableRows";
 import GridViewIcon from "@mui/icons-material/GridView";
 import AppsIcon from "@mui/icons-material/Apps";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import FilterControls from "../components/FilterControls";
 import Navbar from "../components/Navbar";
@@ -19,6 +21,7 @@ import NotesGrid from "../components/NotesGrid";
 import NotesTable from "../components/NotesTable";
 import SuccessSnackbar from "../components/SuccessSnackbar";
 import { type Note } from "../types/Note";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Displays all notes with filtering and sorting.
@@ -53,6 +56,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   setAddDialogOpen,
 }) => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
 
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -202,102 +206,146 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           paddingBottom: "20px",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 3,
-          }}
-        >
-          <Typography variant="h6" fontWeight={600}>
-            📚 All Notes ({notes.length})
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Tooltip title="Table view">
-              <IconButton
-                size="small"
-                onClick={() => setViewMode("table")}
-                sx={{ color: viewMode === "table" ? "#667eea" : "#aaa" }}
+        <Box sx={{ mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Typography variant="h6" fontWeight={600}>
+              📚 My Notes ({notes.length})
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Tooltip title="Table view">
+                <IconButton
+                  size="small"
+                  onClick={() => setViewMode("table")}
+                  sx={{ color: viewMode === "table" ? "#667eea" : "#aaa" }}
+                >
+                  <TableRowsIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Grid view">
+                <IconButton
+                  size="small"
+                  onClick={() => setViewMode("grid")}
+                  sx={{ color: viewMode === "grid" ? "#667eea" : "#aaa" }}
+                >
+                  <GridViewIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Compact view">
+                <IconButton
+                  size="small"
+                  onClick={() => setViewMode("compact")}
+                  sx={{ color: viewMode === "compact" ? "#667eea" : "#aaa" }}
+                >
+                  <AppsIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              {notes.length > 0 && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="error"
+                  onClick={() => setClearAllDialogOpen(true)}
+                  sx={{ textTransform: "none", fontWeight: 600 }}
+                >
+                  Clear All
+                </Button>
+              )}
+            </Box>
+          </Box>
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="body2" color="text.secondary">
+              All your notes in one place. Use the filters below to find
+              specific notes.
+            </Typography>
+            {!isLoggedIn && (
+              <Typography
+                variant="caption"
+                sx={{ color: "#e65100", display: "block", mt: 1.5 }}
               >
-                <TableRowsIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Grid view">
-              <IconButton
-                size="small"
-                onClick={() => setViewMode("grid")}
-                sx={{ color: viewMode === "grid" ? "#667eea" : "#aaa" }}
-              >
-                <GridViewIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Compact view">
-              <IconButton
-                size="small"
-                onClick={() => setViewMode("compact")}
-                sx={{ color: viewMode === "compact" ? "#667eea" : "#aaa" }}
-              >
-                <AppsIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            {notes.length > 0 && (
-              <Button
-                variant="outlined"
-                size="small"
-                color="error"
-                onClick={() => setClearAllDialogOpen(true)}
-                sx={{ textTransform: "none", fontWeight: 600 }}
-              >
-                Clear All
-              </Button>
+                ⚠ Guest mode: notes are saved in your browser only and will be
+                lost if you clear your cache or cookies.{" "}
+                <Link
+                  component={RouterLink}
+                  to="/register"
+                  variant="caption"
+                  sx={{ fontWeight: 700, color: "#e65100" }}
+                >
+                  Register for free
+                </Link>{" "}
+                to save notes permanently.
+              </Typography>
             )}
           </Box>
         </Box>
 
-        <FilterControls
-          filterCountry={filterCountry}
-          setFilterCountry={setFilterCountry}
-          countrySectionCount={countrySectionCount}
-          setCountrySectionCount={setCountrySectionCount}
-          sortOrder={sortOrder}
-          setSortOrder={setSortOrder}
-          filterTag={filterTag}
-          setFilterTag={setFilterTag}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onResetFilters={handleResetFilters}
-          showResetButton={showResetButton}
-          displayedCount={
-            countrySectionCount === 0 ? filteredNotes.length : undefined
-          }
-          countryFilters={countryFilters}
-          setCountryFilters={setCountryFilters}
-        />
+        <Box>
+          <FilterControls
+            filterCountry={filterCountry}
+            setFilterCountry={setFilterCountry}
+            countrySectionCount={countrySectionCount}
+            setCountrySectionCount={setCountrySectionCount}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
+            filterTag={filterTag}
+            setFilterTag={setFilterTag}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onResetFilters={handleResetFilters}
+            showResetButton={showResetButton}
+            displayedCount={
+              countrySectionCount === 0 ? filteredNotes.length : undefined
+            }
+            countryFilters={countryFilters}
+            setCountryFilters={setCountryFilters}
+          />
+        </Box>
 
         {/* Single-list mode */}
         {countrySectionCount === 0 &&
           (filteredNotes.length === 0 ? (
             <Box
               sx={{
-                border: "1px solid black",
-                height: "100%",
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <Typography
-                pl={3}
-                pt={2}
-                variant="h6"
-                fontWeight="bold"
-                gutterBottom
+              <Box
+                sx={{
+                  textAlign: "center",
+                  px: 5,
+                  py: 4,
+                  borderRadius: "16px",
+                  background:
+                    "linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)",
+                  boxShadow: "0 8px 32px rgba(139,92,246,0.15)",
+                  border: "1px solid #c4b5fd",
+                  maxWidth: 400,
+                }}
               >
-                No notes found.
-              </Typography>
-              <Typography pl={3} pt={1} variant="h6">
-                {notes.length === 0
-                  ? "Use the Add Note button to get started!"
-                  : "Try adjusting your filters!"}
-              </Typography>
+                <DescriptionOutlinedIcon
+                  sx={{ fontSize: 56, color: "#7c3aed", mb: 1.5 }}
+                />
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
+                  sx={{ color: "#4c1d95", mb: 1 }}
+                >
+                  {notes.length === 0 ? "No notes yet" : "No notes found"}
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#6d28d9" }}>
+                  {notes.length === 0
+                    ? "Click Add Note in the navbar to get started."
+                    : "Try adjusting your filters or search term."}
+                </Typography>
+              </Box>
             </Box>
           ) : viewMode === "grid" || viewMode === "compact" ? (
             <NotesGrid

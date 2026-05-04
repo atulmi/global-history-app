@@ -30,14 +30,14 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       aria-labelledby="delete-dialog-heading"
       aria-describedby="delete-dialog-body"
       slotProps={{
-        paper: { sx: { borderRadius: "18px", overflow: "hidden", boxShadow: "0 24px 60px rgba(229, 57, 53, 0.15), 0 8px 20px rgba(0,0,0,0.1)" } },
+        paper: { sx: { borderRadius: "18px", overflow: "hidden", minHeight: "40vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 60px rgba(229, 57, 53, 0.15), 0 8px 20px rgba(0,0,0,0.1)" } },
         backdrop: { sx: { backgroundColor: "rgba(0,0,0,0.75)" } },
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${PURPLE_DARK} 0%, ${PURPLE} 100%)`,
+          background: PURPLE,
           px: 3,
           py: 1.5,
           display: "flex",
@@ -66,6 +66,7 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       {/* Footer */}
       <Box
         sx={{
+          mt: "auto",
           px: 3,
           py: 2,
           display: "flex",
@@ -77,13 +78,15 @@ const DeleteConfirmDialog: React.FC<DeleteConfirmDialogProps> = ({
       >
         <Button
           onClick={onClose}
+          variant="outlined"
           sx={{
-            color: "#888",
+            borderColor: PURPLE,
+            color: PURPLE,
             borderRadius: "10px",
             px: 2.5,
             textTransform: "none",
             fontWeight: 600,
-            "&:hover": { backgroundColor: "#f5f5f5", color: "#555" },
+            "&:hover": { backgroundColor: `${PURPLE}12`, borderColor: PURPLE_DARK, color: PURPLE_DARK },
           }}
         >
           Cancel

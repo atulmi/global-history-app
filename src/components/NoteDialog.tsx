@@ -149,14 +149,14 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       data-testid="note-dialog"
       aria-labelledby="note-dialog-heading"
       slotProps={{
-        paper: { sx: { borderRadius: "18px", overflow: "hidden", maxHeight: "90vh" } },
+        paper: { sx: { borderRadius: "18px", overflow: "hidden", minHeight: "60vh", maxHeight: "90vh" } },
         backdrop: { sx: { backgroundColor: "rgba(0,0,0,0.75)" } },
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          background: "#b3b3b3",
+          background: "#667eea",
           px: 3,
           py: 2.5,
           display: "flex",
@@ -177,7 +177,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
           id="note-dialog-heading"
           variant="h6"
           fontWeight={700}
-          sx={{ color: "black", letterSpacing: 0.2, flex: 1 }}
+          sx={{ color: "#fff", letterSpacing: 0.2, flex: 1 }}
         >
           {isAdd ? "Add New Note" : "Edit Note"}
         </Typography>
@@ -279,7 +279,7 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
             )}
           />
           <Box sx={{ flex: 1 }}>
-            <TagsSelect size="small" value={tags} onChange={setTags} />
+            <TagsSelect size="small" value={tags} onChange={setTags} sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }} />
           </Box>
         </Box>
       </Box>
@@ -298,14 +298,16 @@ const NoteDialog: React.FC<NoteDialogProps> = ({
       >
         <Button
           onClick={handleClose}
+          variant="outlined"
           data-testid="btn-note-dialog-cancel"
           sx={{
-            color: "#888",
+            borderColor: PURPLE,
+            color: PURPLE,
             borderRadius: "10px",
             px: 2.5,
             textTransform: "none",
             fontWeight: 600,
-            "&:hover": { backgroundColor: "#f0f0f8", color: "#555" },
+            "&:hover": { backgroundColor: `${PURPLE}12`, borderColor: PURPLE_DARK, color: PURPLE_DARK },
           }}
         >
           Cancel

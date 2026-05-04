@@ -14,7 +14,7 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { TAG_CATEGORIES, COUNTRIES } from "../data/countries";
 
 /**
- * Filter bar for the All Notes page.
+ * Filter bar for the My Notes page.
  *
  * The Country dropdown doubles as a view-mode switcher:
  * - Selecting "All Countries" or a plain country value keeps the single-list
@@ -74,7 +74,12 @@ const FilterControls: React.FC<FilterControlsProps> = ({
   };
 
   return (
-    <Box data-testid="filter-controls" role="group" aria-label="Filter and sort controls" sx={{ mb: 4 }}>
+    <Box
+      data-testid="filter-controls"
+      role="group"
+      aria-label="Filter and sort controls"
+      sx={{ mb: 4 }}
+    >
       <Box
         sx={{
           display: "flex",
@@ -203,10 +208,14 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           }}
         />
 
-        {/* Count + reset button pushed to the far right */}
         <Box sx={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 1.5 }}>
           {displayedCount !== undefined && (
-            <Typography variant="body2" color="text.secondary" data-testid="filter-displayed-count">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              data-testid="filter-displayed-count"
+              sx={{ whiteSpace: "nowrap" }}
+            >
               {displayedCount} {displayedCount === 1 ? "note" : "notes"} shown
             </Typography>
           )}
