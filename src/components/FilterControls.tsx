@@ -9,7 +9,10 @@ import {
   Divider,
   TextField,
   Typography,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 import Autocomplete from "@mui/material/Autocomplete";
 import { TAG_CATEGORIES, COUNTRIES } from "../data/countries";
 
@@ -200,11 +203,17 @@ const FilterControls: React.FC<FilterControlsProps> = ({
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           data-testid="filter-search"
-          sx={{
-            minWidth: 220,
-            backgroundColor: "white",
-            borderRadius: 1,
-            ...selectStyle,
+          sx={{ minWidth: 220, backgroundColor: "white", borderRadius: 1, ...selectStyle }}
+          slotProps={{
+            input: searchTerm ? {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => onSearchChange("")} edge="end" aria-label="Clear search">
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            } : {},
           }}
         />
 
