@@ -36,11 +36,8 @@ const NotesGrid: React.FC<NotesGridProps> = ({
     return (
       <Box
         sx={{
-          overflowY: "auto",
-          flex: 1,
-          minHeight: 0,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
           gap: 4,
           alignContent: "start",
           py: 1,
@@ -60,13 +57,12 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                 onClick={() => onEdit(note, note.id)}
                 sx={{
                   cursor: "pointer",
-                  aspectRatio: "1",
+                  minHeight: 130,
                   border: "1px solid #c4c9e0",
                   borderRadius: "8px",
                   backgroundColor: "#fff",
                   display: "flex",
                   flexDirection: "column",
-                  overflow: "hidden",
                   transition: "background 0.12s, box-shadow 0.12s",
                   "&:hover": {
                     background: `linear-gradient(135deg, ${PURPLE}12 0%, ${PURPLE}08 100%)`,
@@ -167,9 +163,6 @@ const NotesGrid: React.FC<NotesGridProps> = ({
   return (
     <Box
       sx={{
-        overflowY: "auto",
-        flex: 1,
-        minHeight: 0,
         display: "grid",
         gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
         gap: 3,

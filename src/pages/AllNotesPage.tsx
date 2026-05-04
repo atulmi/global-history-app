@@ -200,7 +200,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         sx={{
           paddingTop: "20px",
           flex: 1,
-          overflow: "hidden",
+          overflowY: viewMode === "table" && countrySectionCount === 0 ? "hidden" : "auto",
           display: "flex",
           flexDirection: "column",
           paddingBottom: "20px",
@@ -259,10 +259,15 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             </Box>
           </Box>
           <Box sx={{ mt: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              All your notes in one place. Use the filters below to find
-              specific notes.
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <Typography variant="body2" color="text.secondary">
+                All your notes in one place. Use the filters below to find specific notes.
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ ml: 2, whiteSpace: "nowrap", flexShrink: 0 }}>
+                Toggle between table, grid, and compact views.
+              </Typography>
+            </Box>
+
             {!isLoggedIn && (
               <Typography
                 variant="caption"
@@ -353,7 +358,6 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
               onEdit={handleEditNote}
               onDelete={handleDeleteNote}
               variant={viewMode === "compact" ? "compact" : "cards"}
-              sx={{ flex: 1, minHeight: 0 }}
             />
           ) : (
             <NotesTable
