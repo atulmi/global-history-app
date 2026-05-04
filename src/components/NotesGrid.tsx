@@ -59,7 +59,7 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                   cursor: "pointer",
                   minHeight: 130,
                   border: "1px solid #c4c9e0",
-                  borderRadius: "8px",
+                  borderRadius: "12px",
                   backgroundColor: "#fff",
                   display: "flex",
                   flexDirection: "column",
@@ -68,7 +68,6 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                     background: `linear-gradient(135deg, ${PURPLE}12 0%, ${PURPLE}08 100%)`,
                     borderColor: PURPLE,
                     boxShadow: `0 2px 10px ${PURPLE}30`,
-                    "& .tile-actions": { opacity: 1 },
                   },
                 }}
               >
@@ -77,6 +76,7 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                   sx={{
                     height: 6,
                     flexShrink: 0,
+                    borderRadius: "12px 12px 0 0",
                     background:
                       "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                   }}
@@ -129,27 +129,38 @@ const NotesGrid: React.FC<NotesGridProps> = ({
                     className="tile-actions"
                     sx={{
                       display: "flex",
-                      justifyContent: "flex-end",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                       flexShrink: 0,
-                      opacity: 0,
-                      transition: "opacity 0.12s",
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <IconButton
-                      size="small"
-                      onClick={() => onEdit(note, note.id)}
-                      sx={{ p: 0.25, color: PURPLE }}
-                    >
-                      <EditIcon sx={{ fontSize: 13 }} />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => onDelete(note.id)}
-                      sx={{ p: 0.25, color: "#e53935" }}
-                    >
-                      <DeleteIcon sx={{ fontSize: 13 }} />
-                    </IconButton>
+                    {note.country ? (
+                      <Chip
+                        label={note.country}
+                        size="small"
+                        color="primary"
+                        sx={{ fontSize: "0.6rem", height: 18, maxWidth: 90 }}
+                      />
+                    ) : (
+                      <Box />
+                    )}
+                    <Box sx={{ display: "flex" }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => onEdit(note, note.id)}
+                        sx={{ p: 0.25, color: PURPLE }}
+                      >
+                        <EditIcon sx={{ fontSize: 13 }} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => onDelete(note.id)}
+                        sx={{ p: 0.25, color: "#e53935" }}
+                      >
+                        <DeleteIcon sx={{ fontSize: 13 }} />
+                      </IconButton>
+                    </Box>
                   </Box>
                 </Box>
               </Box>

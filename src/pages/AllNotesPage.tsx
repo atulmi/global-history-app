@@ -200,7 +200,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
         sx={{
           paddingTop: "20px",
           flex: 1,
-          overflowY: viewMode === "table" && countrySectionCount === 0 ? "hidden" : "auto",
+          overflowY: "auto",
           display: "flex",
           flexDirection: "column",
           paddingBottom: "20px",
@@ -364,7 +364,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
               notes={filteredNotes}
               onEdit={handleEditNote}
               onDelete={handleDeleteNote}
-              sx={{ flex: 1, minHeight: 0 }}
+              sx={{ flex: 1, minHeight: 340 }}
             />
           ))}
 
@@ -414,7 +414,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                       showCountry={false}
                       onEdit={handleEditNote}
                       onDelete={handleDeleteNote}
-                      sx={{ flex: 1, minHeight: 0 }}
+                      sx={{ flex: 1, minHeight: 340 }}
                     />
                   )}
                 </Box>

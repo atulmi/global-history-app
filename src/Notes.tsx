@@ -165,7 +165,8 @@ const Notes: React.FC<NotesProps> = ({
     <Box
       sx={{
         height: "100vh",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
         display: "flex",
         flexDirection: "column",
         margin: 0,
@@ -178,7 +179,7 @@ const Notes: React.FC<NotesProps> = ({
       />
       <Box
         component="main"
-        sx={{ flexGrow: 1, overflow: "hidden", display: "flex", width: "100%" }}
+        sx={{ flexGrow: 1, display: "flex", width: "100%" }}
       >
         <Grid
           container
