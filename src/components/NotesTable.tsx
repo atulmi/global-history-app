@@ -89,8 +89,11 @@ const rowSx = {
   "&:nth-of-type(even)": { backgroundColor: ROW_EVEN_BG },
   "& .MuiTableCell-root": {
     borderBottom: `1px solid ${ROW_BORDER}`,
-    py: 0.6,
-    px: 1.25,
+    py: 0.35,
+    px: 1,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   },
   "&:last-child .MuiTableCell-root": { borderBottom: "none" },
   "&:hover": {
@@ -171,7 +174,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
         <Table size="small" stickyHeader aria-label="Notes">
           <TableHead>
             <TableRow>
-              <TableCell scope="col" sx={{ ...headerCellSx, width: 160 }}>
+              <TableCell scope="col" sx={{ ...headerCellSx, width: 300 }}>
                 <TableSortLabel
                   active={titleSort !== null}
                   direction={titleSort ?? "asc"}
@@ -230,16 +233,12 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 sx={rowSx}
               >
                 {/* Title */}
-                <TableCell>
+                <TableCell sx={{ maxWidth: 300, overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>
                   {note.title ? (
                     <Box
                       className="note-title"
                       component="span"
-                      sx={{
-                        fontWeight: 700,
-                        color: "#111827",
-                        fontSize: "0.85rem",
-                      }}
+                      sx={{ fontWeight: 700, color: "#111827", fontSize: "0.85rem" }}
                     >
                       {note.title}
                     </Box>
@@ -247,11 +246,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
                     <Box
                       className="note-untitled"
                       component="span"
-                      sx={{
-                        fontStyle: "italic",
-                        color: "#9ca3af",
-                        fontSize: "0.82rem",
-                      }}
+                      sx={{ fontStyle: "italic", color: "#9ca3af", fontSize: "0.82rem" }}
                     >
                       (untitled)
                     </Box>
@@ -261,7 +256,7 @@ const NotesTable: React.FC<NotesTableProps> = ({
                 {/* Text preview */}
                 <TableCell
                   sx={{
-                    maxWidth: "100px",
+                    maxWidth: "60px",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -289,23 +284,32 @@ const NotesTable: React.FC<NotesTableProps> = ({
 
                 {/* Tags */}
                 <TableCell>
-                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "nowrap", overflow: "hidden" }}>
                     {note.tags.length > 0 ? (
-                      note.tags.map((tag) => (
-                        <Chip
-                          key={tag}
-                          label={tag}
-                          size="small"
-                          sx={{
-                            fontSize: "0.65rem",
-                            height: 20,
-                            backgroundColor: "#ede9f7",
-                            color: "#5b21b6",
-                            fontWeight: 600,
-                            border: "none",
-                          }}
-                        />
-                      ))
+                      <>
+                        {note.tags.slice(0, 2).map((tag) => (
+                          <Chip
+                            key={tag}
+                            label={tag}
+                            size="small"
+                            sx={{
+                              fontSize: "0.65rem",
+                              height: 20,
+                              backgroundColor: "#ede9f7",
+                              color: "#5b21b6",
+                              fontWeight: 600,
+                              border: "none",
+                            }}
+                          />
+                        ))}
+                        {note.tags.length > 2 && (
+                          <Chip
+                            label={`+${note.tags.length - 2}`}
+                            size="small"
+                            sx={{ fontSize: "0.65rem", height: 20, backgroundColor: "#e0e0e0", color: "#555", fontWeight: 600, border: "none" }}
+                          />
+                        )}
+                      </>
                     ) : (
                       <Box
                         component="span"

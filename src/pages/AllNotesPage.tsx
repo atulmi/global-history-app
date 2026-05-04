@@ -1,10 +1,21 @@
-import { Box, Button, Container, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Container,
+  IconButton,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import TableRowsIcon from "@mui/icons-material/TableRows";
+import GridViewIcon from "@mui/icons-material/GridView";
+import AppsIcon from "@mui/icons-material/Apps";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog";
 import FilterControls from "../components/FilterControls";
 import Navbar from "../components/Navbar";
 import NoteDialog from "../components/NoteDialog";
+import NotesGrid from "../components/NotesGrid";
 import NotesTable from "../components/NotesTable";
 import SuccessSnackbar from "../components/SuccessSnackbar";
 import { type Note } from "../types/Note";
@@ -50,6 +61,9 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
   const [clearAllDialogOpen, setClearAllDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "grid" | "compact">(
+    "table",
+  );
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -188,21 +202,57 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           paddingBottom: "20px",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            mb: 3,
+          }}
+        >
           <Typography variant="h6" fontWeight={600}>
             📚 All Notes ({notes.length})
           </Typography>
-          {notes.length > 0 && (
-            <Button
-              variant="outlined"
-              size="small"
-              color="error"
-              onClick={() => setClearAllDialogOpen(true)}
-              sx={{ textTransform: "none", fontWeight: 600 }}
-            >
-              Clear All
-            </Button>
-          )}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Tooltip title="Table view">
+              <IconButton
+                size="small"
+                onClick={() => setViewMode("table")}
+                sx={{ color: viewMode === "table" ? "#667eea" : "#aaa" }}
+              >
+                <TableRowsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Grid view">
+              <IconButton
+                size="small"
+                onClick={() => setViewMode("grid")}
+                sx={{ color: viewMode === "grid" ? "#667eea" : "#aaa" }}
+              >
+                <GridViewIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Compact view">
+              <IconButton
+                size="small"
+                onClick={() => setViewMode("compact")}
+                sx={{ color: viewMode === "compact" ? "#667eea" : "#aaa" }}
+              >
+                <AppsIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            {notes.length > 0 && (
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                onClick={() => setClearAllDialogOpen(true)}
+                sx={{ textTransform: "none", fontWeight: 600 }}
+              >
+                Clear All
+              </Button>
+            )}
+          </Box>
         </Box>
 
         <FilterControls
@@ -218,7 +268,9 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
           onSearchChange={setSearchTerm}
           onResetFilters={handleResetFilters}
           showResetButton={showResetButton}
-          displayedCount={countrySectionCount === 0 ? filteredNotes.length : undefined}
+          displayedCount={
+            countrySectionCount === 0 ? filteredNotes.length : undefined
+          }
           countryFilters={countryFilters}
           setCountryFilters={setCountryFilters}
         />
@@ -247,6 +299,14 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
                   : "Try adjusting your filters!"}
               </Typography>
             </Box>
+          ) : viewMode === "grid" || viewMode === "compact" ? (
+            <NotesGrid
+              notes={filteredNotes}
+              onEdit={handleEditNote}
+              onDelete={handleDeleteNote}
+              variant={viewMode === "compact" ? "compact" : "cards"}
+              sx={{ flex: 1, minHeight: 0 }}
+            />
           ) : (
             <NotesTable
               notes={filteredNotes}
@@ -262,7 +322,7 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
             sx={{
               display: "grid",
               gridTemplateColumns: `repeat(${countrySectionCount}, 1fr)`,
-              gap: 2,
+              gap: 4,
               flex: 1,
               minHeight: 0,
             }}
@@ -272,7 +332,11 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
               return (
                 <Box
                   key={i}
-                  sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden",
+                  }}
                 >
                   {!country && (
                     <Typography
@@ -336,7 +400,10 @@ const AllNotesPage: React.FC<AllNotesPageProps> = ({
       <DeleteConfirmDialog
         open={clearAllDialogOpen}
         onClose={() => setClearAllDialogOpen(false)}
-        onConfirm={() => { clearAllNotes(); setClearAllDialogOpen(false); }}
+        onConfirm={() => {
+          clearAllNotes();
+          setClearAllDialogOpen(false);
+        }}
         title="Clear All Notes?"
         body="This will permanently delete all your notes. This action cannot be undone."
       />
